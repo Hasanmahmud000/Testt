@@ -1,35 +1,33 @@
-const CACHE_NAME = 'cricstreamzone-cache-v1';
+const CACHE_NAME = 'cricstreamzone-v2.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js',
-  'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js'
+  'https://i.postimg.cc/3rPWWckN/icon-192.png'
 ];
 
-// Install event
-self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
+// Install event - cache resources
+self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
+      .then(cache => {
         console.log('Opened cache');
         return cache.addAll(urlsToCache);
       })
       .then(() => {
+        console.log('Service Worker installed successfully');
         return self.skipWaiting();
       })
   );
 });
 
-// Activate event
-self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
+// Activate event - clean up old caches
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
+        cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
@@ -37,137 +35,97 @@ self.addEventListener('activate', (event) => {
         })
       );
     }).then(() => {
+      console.log('Service Worker activated');
       return self.clients.claim();
     })
   );
 });
 
-// Fetch event
-self.addEventListener('fetch', (event) => {
+// Fetch event - serve from cache, fallback to network
+self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
+      .then(response => {
         // Return cached version or fetch from network
-        if (response) {
-          return response;
-        }
-        
-        return fetch(event.request).then((response) => {
-          // Don't cache non-successful responses
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // Clone the response
-          const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-
-          return response;
-        });
-      })
+        return response || fetch(event.request);
+      }
+    )
   );
 });
 
-// Handle messages from main thread
-self.addEventListener('message', (event) => {
+// Handle skip waiting message
+self.addEventListener('message', event => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
 });
 
-// Background sync for notifications
-self.addEventListener('sync', (event) => {
+// Background sync for notifications (if supported)
+self.addEventListener('sync', event => {
   if (event.tag === 'background-sync') {
     event.waitUntil(doBackgroundSync());
   }
 });
 
-async function doBackgroundSync() {
-  try {
-    // Fetch latest match data
-    const response = await fetch('https://script.google.com/macros/s/AKfycbxZfHUGsH19x3hZp5eeo3tEMJuQxvOPHpyS_LAqow4rlBciyrhP0NdaI2NzeZiyA5SF9A/exec');
-    const data = await response.json();
-    
-    // Store in cache for offline access
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put('match-data', new Response(JSON.stringify(data)));
-    
-    console.log('Background sync completed');
-  } catch (error) {
-    console.error('Background sync failed:', error);
-  }
+function doBackgroundSync() {
+  // This will run in background to check for match updates
+  return fetch('https://script.google.com/macros/s/AKfycbxZfHUGsH19x3hZp5eeo3tEMJuQxvOPHpyS_LAqow4rlBciyrhP0NdaI2NzeZiyA5SF9A/exec')
+    .then(response => response.json())
+    .then(data => {
+      // Process match data and send notifications if needed
+      console.log('Background sync completed');
+    })
+    .catch(error => {
+      console.log('Background sync failed:', error);
+    });
 }
 
-// Periodic background sync (if supported)
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'match-updates') {
-    event.waitUntil(doBackgroundSync());
-  }
-});
-
-// Push event for notifications
-self.addEventListener('push', (event) => {
-  console.log('Push event received:', event);
-  
-  let notificationData = {};
-  
-  if (event.data) {
-    notificationData = event.data.json();
-  }
-  
-  const title = notificationData.title || 'CricStreamZone';
+// Push notification event (for future server-side notifications)
+self.addEventListener('push', event => {
   const options = {
-    body: notificationData.body || 'New cricket match update!',
-    icon: notificationData.icon || '/icon-192.png',
-    badge: '/icon-192.png',
-    tag: 'cricstreamzone',
-    requireInteraction: true,
+    body: event.data ? event.data.text() : 'New cricket match update!',
+    icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+    badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: 1
+    },
     actions: [
       {
-        action: 'open',
-        title: 'Open App'
+        action: 'explore',
+        title: 'View Match',
+        icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png'
       },
       {
         action: 'close',
-        title: 'Close'
+        title: 'Close',
+        icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png'
       }
     ]
   };
-  
+
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration.showNotification('CricStreamZone', options)
   );
 });
 
-// Notification click handler
-self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event);
-  
+// Notification click event
+self.addEventListener('notificationclick', event => {
   event.notification.close();
-  
-  if (event.action === 'open' || !event.action) {
-    event.waitUntil(
-      clients.matchAll({ type: 'window' }).then((clientList) => {
-        for (const client of clientList) {
-          if (client.url === '/' && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        if (clients.openWindow) {
-          return clients.openWindow('/');
-        }
-      })
-    );
-  }
-});
 
-// Handle app updates
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+  if (event.action === 'explore') {
+    // Open the app
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  } else if (event.action === 'close') {
+    // Just close the notification
+    event.notification.close();
+  } else {
+    // Default action - open the app
+    event.waitUntil(
+      clients.openWindow('/')
+    );
   }
 });
