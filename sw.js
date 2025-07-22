@@ -1,9 +1,10 @@
-// 🔔 CricStreamZone Service Worker - Working Notification System
-const CACHE_NAME = 'cricstreamzone-v2.0';
+// 🔔 CricStreamZone Service Worker - Enhanced with Test Support
+const CACHE_NAME = 'cricstreamzone-v2.1';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/notification-test.html',
   'https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js',
   'https://i.postimg.cc/3rPWWckN/icon-192.png'
 ];
@@ -115,21 +116,7 @@ async function fetchMatches() {
   }
 }
 
-// Get match status
-function getMatchStatus(matchTime, matchDuration, now) {
-  const startTime = new Date(matchTime);
-  const endTime = new Date(startTime.getTime() + (matchDuration * 60 * 1000));
-  
-  if (now >= endTime) {
-    return 'finished';
-  } else if (now >= startTime) {
-    return 'live';
-  } else {
-    return 'upcoming';
-  }
-}
-
-// Show notification
+// Show notification with enhanced options
 async function showNotification(title, body, options = {}) {
   const defaultOptions = {
     icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
@@ -149,6 +136,10 @@ async function showNotification(title, body, options = {}) {
         icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png'
       }
     ],
+    data: {
+      timestamp: Date.now(),
+      source: 'cricstreamzone'
+    },
     ...options
   };
 
@@ -158,12 +149,24 @@ async function showNotification(title, body, options = {}) {
       ...defaultOptions
     });
     console.log('✅ Notification shown:', title);
+    
+    // Notify test page if open
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      if (client.url.includes('notification-test.html')) {
+        client.postMessage({
+          action: 'notificationShown',
+          data: { title, body, options: defaultOptions }
+        });
+      }
+    });
+    
   } catch (error) {
     console.error('❌ Error showing notification:', error);
   }
 }
 
-// Check and send notifications
+// Check and send notifications (existing function)
 async function checkNotifications() {
   if (!notificationSettings.enabled || !matches.length) {
     return;
@@ -190,7 +193,8 @@ async function checkNotifications() {
         `${match.Team1} vs ${match.Team2} starts in 15 minutes\n🕐 ${matchTime.toLocaleTimeString()}`,
         {
           tag: `${matchId}-15min`,
-          data: { matchId, type: '15min', match }
+          data: { matchId, type: '15min', match },
+          vibrate: [300, 100, 300]
         }
       );
       
@@ -305,36 +309,93 @@ function startNotificationChecker() {
 }
 
 // Handle notification click
-self.addEventListener('notificationclick', event => {
+self.addEventListener('notificationclick', async event => {
   console.log('🖱️ Notification clicked:', event.notification.data);
+  
+  const { action } = event;
+  const { title, data } = event.notification;
   
   event.notification.close();
   
-  if (event.action === 'view' || event.action === '') {
-    // Open the app
-    event.waitUntil(
-      clients.matchAll({ type: 'window' }).then(clientList => {
-        // If app is already open, focus it
-        for (const client of clientList) {
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            return client.focus();
+  // Notify test page about click
+  const clients = await self.clients.matchAll();
+  clients.forEach(client => {
+    if (client.url.includes('notification-test.html')) {
+      client.postMessage({
+        action: 'notificationClick',
+        data: { title, action, data }
+      });
+    }
+  });
+  
+  // Handle different actions
+  switch (action) {
+    case 'view':
+    case 'watch':
+    case '':
+      // Open the app
+      event.waitUntil(
+        clients.matchAll({ type: 'window' }).then(clientList => {
+          // If app is already open, focus it
+          for (const client of clientList) {
+            if (client.url.includes(self.location.origin) && 'focus' in client) {
+              return client.focus();
+            }
           }
-        }
-        // Otherwise open new window
-        if (clients.openWindow) {
-          return clients.openWindow('/');
-        }
-      })
-    );
+          // Otherwise open new window
+          if (clients.openWindow) {
+            return clients.openWindow('/');
+          }
+        })
+      );
+      break;
+      
+    case 'score':
+    case 'scorecard':
+      // Open app with score focus
+      event.waitUntil(
+        clients.openWindow('/?tab=live')
+      );
+      break;
+      
+    case 'highlights':
+      // Open app with highlights
+      event.waitUntil(
+        clients.openWindow('/?tab=highlights')
+      );
+      break;
+      
+    case 'remind':
+      // Set reminder (could implement later)
+      console.log('⏰ Reminder set for match');
+      break;
+      
+    case 'dismiss':
+    case 'close':
+    default:
+      // Just close the notification
+      console.log('❌ Notification dismissed');
+      break;
   }
 });
 
 // Handle notification close
-self.addEventListener('notificationclose', event => {
+self.addEventListener('notificationclose', async event => {
   console.log('❌ Notification closed:', event.notification.data);
+  
+  // Notify test page about close
+  const clients = await self.clients.matchAll();
+  clients.forEach(client => {
+    if (client.url.includes('notification-test.html')) {
+      client.postMessage({
+        action: 'notificationClose',
+        data: { title: event.notification.title }
+      });
+    }
+  });
 });
 
-// Message handling from main app
+// Enhanced message handling from main app
 self.addEventListener('message', event => {
   const { action, data } = event.data || {};
   
@@ -364,19 +425,47 @@ self.addEventListener('message', event => {
       
     case 'testNotification':
       showNotification(
-        '🧪 Test Notification',
-        'CricStreamZone notifications are working perfectly! 🎉',
+        data?.title || '🧪 Test Notification',
+        data?.body || 'CricStreamZone notifications are working perfectly! 🎉',
         {
           tag: 'test-notification',
-          requireInteraction: false
+          requireInteraction: false,
+          ...data?.options
         }
       );
+      break;
+      
+    case 'fetchMatches':
+      fetchMatches();
+      break;
+      
+    case 'clearNotifications':
+      // Clear all notifications
+      self.registration.getNotifications().then(notifications => {
+        notifications.forEach(notification => notification.close());
+        console.log(`🗑️ Cleared ${notifications.length} notifications`);
+      });
+      break;
+      
+    case 'getStats':
+      // Send notification statistics
+      event.ports[0]?.postMessage({
+        action: 'statsResponse',
+        data: {
+          totalMatches: matches.length,
+          sentNotifications: sentNotifications.size,
+          settings: notificationSettings,
+          lastCheck: new Date().toISOString()
+        }
+      });
       break;
   }
 });
 
 // Background sync for notifications
 self.addEventListener('sync', event => {
+  console.log('🔄 Background sync triggered:', event.tag);
+  
   if (event.tag === 'background-sync') {
     event.waitUntil(
       Promise.all([
@@ -399,7 +488,36 @@ self.addEventListener('push', event => {
       );
     } catch (error) {
       console.error('Error handling push event:', error);
+      // Fallback for text data
+      event.waitUntil(
+        showNotification('📬 Push Notification', event.data.text())
+      );
     }
+  }
+});
+
+// Periodic background sync (if supported)
+self.addEventListener('periodicsync', event => {
+  console.log('⏰ Periodic sync triggered:', event.tag);
+  
+  if (event.tag === 'match-notifications') {
+    event.waitUntil(
+      Promise.all([
+        fetchMatches(),
+        checkNotifications()
+      ])
+    );
+  }
+});
+
+// Background fetch (for offline support)
+self.addEventListener('backgroundfetch', event => {
+  console.log('📥 Background fetch:', event.tag);
+  
+  if (event.tag === 'match-data') {
+    event.waitUntil(
+      fetchMatches()
+    );
   }
 });
 
@@ -419,4 +537,4 @@ self.addEventListener('message', event => {
   }
 });
 
-console.log('🔔 CricStreamZone Service Worker loaded with notification system');
+console.log('🔔 CricStreamZone Service Worker v2.1 loaded with enhanced notification system');
