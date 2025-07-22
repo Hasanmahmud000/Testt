@@ -1,7 +1,7 @@
 {
   "name": "CricStreamZone - Live Cricket Streaming",
   "short_name": "CricStreamZone",
-  "description": "Watch live cricket matches and get instant notifications",
+  "description": "Watch live cricket matches with instant notifications",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111111",
@@ -44,7 +44,26 @@
           "sizes": "192x192"
         }
       ]
+    },
+    {
+      "name": "Notifications",
+      "short_name": "Alerts",
+      "description": "Manage match notifications",
+      "url": "/?tab=notifications",
+      "icons": [
+        {
+          "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
-  "gcm_sender_id": "508655160995"
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.genuine.leone",
+      "id": "com.genuine.leone"
+    }
+  ]
 }
