@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Test - CricStreamZone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: #fff;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .test-container {
+            background: #222;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #0af;
+        }
+        .test-btn {
+            background: #0af;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .test-btn:hover {
+            background: #0099cc;
+        }
+        .test-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+        }
+        .status.error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+        }
+        .status.info {
+            background: rgba(0, 170, 255, 0.2);
+            border: 1px solid #0af;
+        }
+        .log {
+            background: #000;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔔 Notification Test Center</h1>
+        <p>Test all notification features of CricStreamZone</p>
+        
+        <div id="permissionStatus" class="status info">
+            Checking notification permission...
+        </div>
+        
+        <div class="test-buttons">
+            <button id="requestPermission" class="test-btn">🔔 Request Permission</button>
+            <button id="testBasic" class="test-btn" disabled>🧪 Test Basic Notification</button>
+            <button id="test15min" class="test-btn" disabled>🕐 Test 15min Alert</button>
+            <button id="test5min" class="test-btn" disabled>⏰ Test 5min Alert</button>
+            <button id="testLive" class="test-btn" disabled>🔴 Test Live Alert</button>
+            <button id="testEnd" class="test-btn" disabled>🏁 Test End Alert</button>
+            <button id="testVibration" class="test-btn" disabled>📳 Test with Vibration</button>
+            <button id="testActions" class="test-btn" disabled>⚡ Test with Actions</button>
+            <button id="clearAll" class="test-btn">🗑️ Clear All Notifications</button>
+        </div>
+        
+        <div class="log" id="testLog">
+            <div>📋 Test log will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        // Test notification system
+        class NotificationTester {
+            constructor() {
+                this.log = document.getElementById('testLog');
+                this.init();
+            }
+
+            init() {
+                this.updatePermissionStatus();
+                this.bindEvents();
+                this.addLog('🚀 Notification tester initialized');
+            }
+
+            addLog(message) {
+                const time = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `[${time}] ${message}`;
+                this.log.appendChild(logEntry);
+                this.log.scrollTop = this.log.scrollHeight;
+            }
+
+            updatePermissionStatus() {
+                const status = document.getElementById('permissionStatus');
+                const buttons = document.querySelectorAll('.test-btn:not(#requestPermission):not(#clearAll)');
+                
+                switch (Notification.permission) {
+                    case 'granted':
+                        status.className = 'status success';
+                        status.innerHTML = '✅ Notifications are ENABLED - All tests available';
+                        buttons.forEach(btn => btn.disabled = false);
+                        document.getElementById('requestPermission').disabled = true;
+                        break;
+                    case 'denied':
+                        status.className = 'status error';
+                        status.innerHTML = '❌ Notifications are BLOCKED - Enable in browser settings';
+                        buttons.forEach(btn => btn.disabled = true);
+                        break;
+                    default:
+                        status.className = 'status info';
+                        status.innerHTML = '⏳ Permission not requested - Click "Request Permission"';
+                        buttons.forEach(btn => btn.disabled = true);
+                }
+            }
+
+            async requestPermission() {
+                try {
+                    this.addLog('🔔 Requesting notification permission...');
+                    const permission = await Notification.requestPermission();
+                    this.addLog(`📋 Permission result: ${permission}`);
+                    this.updatePermissionStatus();
+                    
+                    if (permission === 'granted') {
+                        this.showNotification('🎉 Permission Granted!', 'Notifications are now enabled for CricStreamZone');
+                    }
+                } catch (error) {
+                    this.addLog(`❌ Error requesting permission: ${error.message}`);
+                }
+            }
+
+            showNotification(title, body, options = {}) {
+                if (Notification.permission !== 'granted') {
+                    this.addLog('❌ Cannot show notification - permission not granted');
+                    return;
+                }
+
+                const defaultOptions = {
+                    icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+                    badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+                    requireInteraction: false,
+                    silent: false,
+                    ...options
+                };
+
+                try {
+                    const notification = new Notification(title, {
+                        body: body,
+                        ...defaultOptions
+                    });
+
+                    notification.onclick = () => {
+                        this.addLog(`🖱️ Notification clicked: ${title}`);
+                        notification.close();
+                    };
+
+                    notification.onclose = () => {
+                        this.addLog(`❌ Notification closed: ${title}`);
+                    };
+
+                    notification.onerror = (error) => {
+                        this.addLog(`❌ Notification error: ${error}`);
+                    };
+
+                    this.addLog(`✅ Notification shown: ${title}`);
+                    
+                    // Auto close after 10 seconds
+                    setTimeout(() => {
+                        notification.close();
+                    }, 10000);
+
+                } catch (error) {
+                    this.addLog(`❌ Error showing notification: ${error.message}`);
+                }
+            }
+
+            bindEvents() {
+                document.getElementById('requestPermission').onclick = () => this.requestPermission();
+                
+                document.getElementById('testBasic').onclick = () => {
+                    this.showNotification(
+                        '🧪 Basic Test',
+                        'This is a basic notification test from CricStreamZone'
+                    );
+                };
+
+                document.getElementById('test15min').onclick = () => {
+                    this.showNotification(
+                        '🏏 Match Starting Soon!',
+                        'India vs Pakistan starts in 15 minutes\n🕐 3:00 PM',
+                        {
+                            tag: 'test-15min',
+                            requireInteraction: true
+                        }
+                    );
+                };
+
+                document.getElementById('test5min').onclick = () => {
+                    this.showNotification(
+                        '⏰ Match Starting Very Soon!',
+                        'India vs Pakistan starts in 5 minutes\n🚨 Get ready to watch!',
+                        {
+                            tag: 'test-5min',
+                            requireInteraction: true,
+                            vibrate: [500, 200, 500, 200, 500]
+                        }
+                    );
+                };
+
+                document.getElementById('testLive').onclick = () => {
+                    this.showNotification(
+                        '🔴 LIVE NOW!',
+                        'India vs Pakistan is now LIVE!\n⚡ Don\'t miss the action!',
+                        {
+                            tag: 'test-live',
+                            requireInteraction: true,
+                            vibrate: [1000, 300, 1000]
+                        }
+                    );
+                };
+
+                document.getElementById('testEnd').onclick = () => {
+                    this.showNotification(
+                        '🏁 Match Finished',
+                        'India vs Pakistan has ended\n📊 Check the final scores!',
+                        {
+                            tag: 'test-end',
+                            requireInteraction: false
+                        }
+                    );
+                };
+
+                document.getElementById('testVibration').onclick = () => {
+                    this.showNotification(
+                        '📳 Vibration Test',
+                        'This notification includes vibration patterns',
+                        {
+                            vibrate: [200, 100, 200, 100, 200, 100, 500]
+                        }
+                    );
+                };
+
+                document.getElementById('testActions').onclick = () => {
+                    // Note: Actions only work in Service Worker notifications
+                    this.addLog('⚠️ Action buttons only work with Service Worker notifications');
+                    this.showNotification(
+                        '⚡ Actions Test',
+                        'This notification would have action buttons in a Service Worker',
+                        {
+                            tag: 'test-actions'
+                        }
+                    );
+                };
+
+                document.getElementById('clearAll').onclick = () => {
+                    this.log.innerHTML = '<div>📋 Test log cleared...</div>';
+                    this.addLog('🗑️ All logs cleared');
+                };
+            }
+        }
+
+        // Initialize tester
+        const tester = new NotificationTester();
+
+        // Check if Service Worker is available
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(registration => {
+                tester.addLog('✅ Service Worker registered for enhanced notifications');
+            }).catch(error => {
+                tester.addLog(`❌ Service Worker registration failed: ${error.message}`);
+            });
+        } else {
+            tester.addLog('⚠️ Service Worker not supported - using basic notifications only');
+        }
+    </script>
+</body>
+</html>
