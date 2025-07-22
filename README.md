@@ -1,34 +1,22 @@
-# CricStreamZone - Live Cricket Streaming
+# 🏏 CricStreamZone - Live Cricket with Push Notifications
 
-🏏 Watch live cricket matches with instant push notifications!
+## 🚀 Features
+- ✅ **Live Cricket Matches** with real-time updates
+- 🔔 **Smart Push Notifications** (15min, 5min, start, end)
+- 📱 **PWA Support** - Install as mobile app
+- 🌐 **Offline Support** - Works without internet
+- ⚡ **Background Notifications** - Works when app is closed
+- 🎛️ **User Controls** - Enable/disable notifications
+- 📊 **Real-time Scores** and match status
 
-## Features
-- ⚡ Real-time match updates
-- 🔔 Smart push notifications (15min, 5min, start, end)
-- 📱 PWA support with offline functionality
-- 🎯 Background notifications even when app is closed
-- 🔍 Advanced search and filtering
-- 📺 Live TV and FM radio integration
+## 📋 Setup Instructions
 
-## Notification Schedule
-- 15 minutes before match starts
-- 5 minutes before match starts
-- When match goes live
-- When match ends
-
-## Tech Stack
-- Firebase Cloud Messaging
-- Service Workers for background processing
-- Progressive Web App (PWA)
-- Responsive design
-
-## Installation
-1. Visit the website
-2. Enable notifications when prompted
-3. Add to home screen for best experience
-
-## Live Demo
-[https://yourusername.github.io/your-repo-name/](https://hasanmahmud000.github.io/Testt/#)
-
----
-Made with ❤️ for cricket fans
+### 1. GitHub Repository Setup
+```bash
+# Create new repository
+git init
+git add .
+git commit -m "Initial commit with notification system"
+git branch -M main
+git remote add origin https://github.com/yourusername/cricstreamzone.git
+git push -u origin main
