@@ -29,13 +29,16 @@
             margin: 10px;
             font-size: 16px;
             font-weight: bold;
+            transition: all 0.3s ease;
         }
         .test-btn:hover {
             background: #0099cc;
+            transform: translateY(-2px);
         }
         .test-btn:disabled {
             background: #555;
             cursor: not-allowed;
+            transform: none;
         }
         .status {
             padding: 15px;
@@ -62,79 +65,182 @@
             margin: 20px 0;
             font-family: monospace;
             font-size: 12px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
+            border: 1px solid #333;
+        }
+        .sw-status {
+            background: #333;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            border-left: 4px solid #0af;
+        }
+        .test-section h3 {
+            color: #0af;
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
     <div class="test-container">
-        <h1>🔔 Notification Test Center</h1>
-        <p>Test all notification features of CricStreamZone</p>
+        <h1>🔔 CricStreamZone Notification Test Center</h1>
+        <p>Complete notification system testing and debugging tool</p>
         
         <div id="permissionStatus" class="status info">
-            Checking notification permission...
+            🔍 Checking notification permission...
+        </div>
+
+        <div id="swStatus" class="sw-status">
+            🔧 Checking Service Worker status...
         </div>
         
-        <div class="test-buttons">
+        <div class="test-section">
+            <h3>🔑 Permission & Setup</h3>
             <button id="requestPermission" class="test-btn">🔔 Request Permission</button>
+            <button id="checkSW" class="test-btn">🔧 Check Service Worker</button>
+            <button id="registerSW" class="test-btn">📝 Register Service Worker</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Basic Notification Tests</h3>
             <button id="testBasic" class="test-btn" disabled>🧪 Test Basic Notification</button>
+            <button id="testWithIcon" class="test-btn" disabled>🖼️ Test with Icon</button>
+            <button id="testPersistent" class="test-btn" disabled>📌 Test Persistent</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🏏 Cricket Match Notifications</h3>
             <button id="test15min" class="test-btn" disabled>🕐 Test 15min Alert</button>
             <button id="test5min" class="test-btn" disabled>⏰ Test 5min Alert</button>
             <button id="testLive" class="test-btn" disabled>🔴 Test Live Alert</button>
             <button id="testEnd" class="test-btn" disabled>🏁 Test End Alert</button>
-            <button id="testVibration" class="test-btn" disabled>📳 Test with Vibration</button>
-            <button id="testActions" class="test-btn" disabled>⚡ Test with Actions</button>
-            <button id="clearAll" class="test-btn">🗑️ Clear All Notifications</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📱 Advanced Features</h3>
+            <button id="testVibration" class="test-btn" disabled>📳 Test Vibration</button>
+            <button id="testActions" class="test-btn" disabled>⚡ Test Action Buttons</button>
+            <button id="testSound" class="test-btn" disabled>🔊 Test with Sound</button>
+            <button id="testBadge" class="test-btn" disabled>🏷️ Test with Badge</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🛠️ Utilities</h3>
+            <button id="clearAll" class="test-btn">🗑️ Clear Log</button>
+            <button id="testAll" class="test-btn" disabled>🚀 Run All Tests</button>
+            <button id="exportLog" class="test-btn">📤 Export Log</button>
         </div>
         
         <div class="log" id="testLog">
-            <div>📋 Test log will appear here...</div>
+            <div>📋 Notification test log - Ready to start testing...</div>
         </div>
     </div>
 
     <script>
-        // Test notification system
+        // Fixed Notification Tester with Service Worker Support
         class NotificationTester {
             constructor() {
                 this.log = document.getElementById('testLog');
+                this.swRegistration = null;
                 this.init();
             }
 
-            init() {
+            async init() {
+                this.addLog('🚀 CricStreamZone Notification Tester v2.0 initialized');
+                await this.checkServiceWorker();
                 this.updatePermissionStatus();
                 this.bindEvents();
-                this.addLog('🚀 Notification tester initialized');
             }
 
-            addLog(message) {
+            addLog(message, type = 'info') {
                 const time = new Date().toLocaleTimeString();
                 const logEntry = document.createElement('div');
-                logEntry.innerHTML = `[${time}] ${message}`;
+                const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '📋';
+                logEntry.innerHTML = `[${time}] ${icon} ${message}`;
+                logEntry.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : type === 'warning' ? '#ffd43b' : '#fff';
                 this.log.appendChild(logEntry);
                 this.log.scrollTop = this.log.scrollHeight;
             }
 
+            async checkServiceWorker() {
+                const swStatus = document.getElementById('swStatus');
+                
+                if ('serviceWorker' in navigator) {
+                    try {
+                        // Check if already registered
+                        this.swRegistration = await navigator.serviceWorker.getRegistration();
+                        
+                        if (this.swRegistration) {
+                            swStatus.innerHTML = '✅ Service Worker is registered and active';
+                            swStatus.style.background = 'rgba(0, 255, 0, 0.2)';
+                            this.addLog('✅ Service Worker found and active', 'success');
+                        } else {
+                            swStatus.innerHTML = '⚠️ Service Worker not registered - Click "Register Service Worker"';
+                            swStatus.style.background = 'rgba(255, 212, 59, 0.2)';
+                            this.addLog('⚠️ Service Worker not registered', 'warning');
+                        }
+                    } catch (error) {
+                        swStatus.innerHTML = '❌ Service Worker check failed';
+                        swStatus.style.background = 'rgba(255, 0, 0, 0.2)';
+                        this.addLog(`❌ Service Worker check error: ${error.message}`, 'error');
+                    }
+                } else {
+                    swStatus.innerHTML = '❌ Service Worker not supported in this browser';
+                    swStatus.style.background = 'rgba(255, 0, 0, 0.2)';
+                    this.addLog('❌ Service Worker not supported', 'error');
+                }
+            }
+
+            async registerServiceWorker() {
+                if (!('serviceWorker' in navigator)) {
+                    this.addLog('❌ Service Worker not supported', 'error');
+                    return;
+                }
+
+                try {
+                    this.addLog('🔧 Registering Service Worker...');
+                    this.swRegistration = await navigator.serviceWorker.register('/sw.js');
+                    
+                    await navigator.serviceWorker.ready;
+                    this.addLog('✅ Service Worker registered successfully', 'success');
+                    await this.checkServiceWorker();
+                    this.updatePermissionStatus();
+                } catch (error) {
+                    this.addLog(`❌ Service Worker registration failed: ${error.message}`, 'error');
+                }
+            }
+
             updatePermissionStatus() {
                 const status = document.getElementById('permissionStatus');
-                const buttons = document.querySelectorAll('.test-btn:not(#requestPermission):not(#clearAll)');
+                const buttons = document.querySelectorAll('.test-btn:not(#requestPermission):not(#clearAll):not(#checkSW):not(#registerSW):not(#exportLog)');
                 
                 switch (Notification.permission) {
                     case 'granted':
                         status.className = 'status success';
-                        status.innerHTML = '✅ Notifications are ENABLED - All tests available';
+                        status.innerHTML = '✅ Notifications ENABLED - All tests available';
                         buttons.forEach(btn => btn.disabled = false);
                         document.getElementById('requestPermission').disabled = true;
+                        this.addLog('✅ Notification permission granted', 'success');
                         break;
                     case 'denied':
                         status.className = 'status error';
-                        status.innerHTML = '❌ Notifications are BLOCKED - Enable in browser settings';
+                        status.innerHTML = '❌ Notifications BLOCKED - Enable in browser settings';
                         buttons.forEach(btn => btn.disabled = true);
+                        this.addLog('❌ Notification permission denied', 'error');
                         break;
                     default:
                         status.className = 'status info';
                         status.innerHTML = '⏳ Permission not requested - Click "Request Permission"';
                         buttons.forEach(btn => btn.disabled = true);
+                        this.addLog('⏳ Notification permission not requested');
                 }
             }
 
@@ -146,16 +252,16 @@
                     this.updatePermissionStatus();
                     
                     if (permission === 'granted') {
-                        this.showNotification('🎉 Permission Granted!', 'Notifications are now enabled for CricStreamZone');
+                        await this.showNotification('🎉 Permission Granted!', 'Notifications are now enabled for CricStreamZone');
                     }
                 } catch (error) {
-                    this.addLog(`❌ Error requesting permission: ${error.message}`);
+                    this.addLog(`❌ Error requesting permission: ${error.message}`, 'error');
                 }
             }
 
-            showNotification(title, body, options = {}) {
+            async showNotification(title, body, options = {}) {
                 if (Notification.permission !== 'granted') {
-                    this.addLog('❌ Cannot show notification - permission not granted');
+                    this.addLog('❌ Cannot show notification - permission not granted', 'error');
                     return;
                 }
 
@@ -164,43 +270,92 @@
                     badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
                     requireInteraction: false,
                     silent: false,
+                    tag: `test-${Date.now()}`,
                     ...options
                 };
 
                 try {
-                    const notification = new Notification(title, {
-                        body: body,
-                        ...defaultOptions
-                    });
+                    // Use Service Worker if available, otherwise fallback to direct notification
+                    if (this.swRegistration && this.swRegistration.active) {
+                        this.addLog(`🔧 Using Service Worker notification: ${title}`);
+                        await this.swRegistration.showNotification(title, {
+                            body: body,
+                            ...defaultOptions
+                        });
+                    } else {
+                        this.addLog(`📱 Using direct notification: ${title}`);
+                        const notification = new Notification(title, {
+                            body: body,
+                            ...defaultOptions
+                        });
 
-                    notification.onclick = () => {
-                        this.addLog(`🖱️ Notification clicked: ${title}`);
-                        notification.close();
-                    };
+                        notification.onclick = () => {
+                            this.addLog(`🖱️ Notification clicked: ${title}`, 'success');
+                            notification.close();
+                        };
 
-                    notification.onclose = () => {
-                        this.addLog(`❌ Notification closed: ${title}`);
-                    };
+                        notification.onclose = () => {
+                            this.addLog(`❌ Notification closed: ${title}`);
+                        };
 
-                    notification.onerror = (error) => {
-                        this.addLog(`❌ Notification error: ${error}`);
-                    };
+                        notification.onerror = (error) => {
+                            this.addLog(`❌ Notification error: ${error}`, 'error');
+                        };
 
-                    this.addLog(`✅ Notification shown: ${title}`);
-                    
-                    // Auto close after 10 seconds
-                    setTimeout(() => {
-                        notification.close();
-                    }, 10000);
+                        // Auto close after 10 seconds
+                        setTimeout(() => {
+                            notification.close();
+                        }, 10000);
+                    }
+
+                    this.addLog(`✅ Notification sent successfully: ${title}`, 'success');
 
                 } catch (error) {
-                    this.addLog(`❌ Error showing notification: ${error.message}`);
+                    this.addLog(`❌ Error showing notification: ${error.message}`, 'error');
                 }
             }
 
-            bindEvents() {
-                document.getElementById('requestPermission').onclick = () => this.requestPermission();
+            async runAllTests() {
+                this.addLog('🚀 Running all notification tests...');
                 
+                const tests = [
+                    { title: '🧪 Basic Test', body: 'Basic notification test' },
+                    { title: '🕐 15min Alert', body: 'Match starts in 15 minutes', options: { vibrate: [300, 100, 300] } },
+                    { title: '⏰ 5min Alert', body: 'Match starts in 5 minutes', options: { vibrate: [500, 200, 500] } },
+                    { title: '🔴 Live Alert', body: 'Match is now LIVE!', options: { vibrate: [1000, 300, 1000] } },
+                    { title: '🏁 End Alert', body: 'Match has ended', options: { requireInteraction: false } }
+                ];
+
+                for (let i = 0; i < tests.length; i++) {
+                    const test = tests[i];
+                    await this.showNotification(test.title, test.body, test.options);
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay between tests
+                }
+
+                this.addLog('✅ All tests completed', 'success');
+            }
+
+            exportLog() {
+                const logContent = this.log.innerText;
+                const blob = new Blob([logContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cricstreamzone-notification-test-${new Date().toISOString().slice(0, 10)}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                this.addLog('📤 Test log exported', 'success');
+            }
+
+            bindEvents() {
+                // Permission & Setup
+                document.getElementById('requestPermission').onclick = () => this.requestPermission();
+                document.getElementById('checkSW').onclick = () => this.checkServiceWorker();
+                document.getElementById('registerSW').onclick = () => this.registerServiceWorker();
+
+                // Basic Tests
                 document.getElementById('testBasic').onclick = () => {
                     this.showNotification(
                         '🧪 Basic Test',
@@ -208,13 +363,40 @@
                     );
                 };
 
+                document.getElementById('testWithIcon').onclick = () => {
+                    this.showNotification(
+                        '🖼️ Icon Test',
+                        'This notification includes the CricStreamZone icon',
+                        {
+                            icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png'
+                        }
+                    );
+                };
+
+                document.getElementById('testPersistent').onclick = () => {
+                    this.showNotification(
+                        '📌 Persistent Test',
+                        'This notification requires user interaction to close',
+                        {
+                            requireInteraction: true,
+                            tag: 'persistent-test'
+                        }
+                    );
+                };
+
+                // Cricket Match Tests
                 document.getElementById('test15min').onclick = () => {
                     this.showNotification(
                         '🏏 Match Starting Soon!',
-                        'India vs Pakistan starts in 15 minutes\n🕐 3:00 PM',
+                        'India vs Pakistan starts in 15 minutes\n🕐 3:00 PM IST\n🏟️ Wankhede Stadium',
                         {
                             tag: 'test-15min',
-                            requireInteraction: true
+                            requireInteraction: true,
+                            vibrate: [300, 100, 300],
+                            actions: [
+                                { action: 'view', title: '👀 View Match' },
+                                { action: 'remind', title: '⏰ Remind Later' }
+                            ]
                         }
                     );
                 };
@@ -222,11 +404,15 @@
                 document.getElementById('test5min').onclick = () => {
                     this.showNotification(
                         '⏰ Match Starting Very Soon!',
-                        'India vs Pakistan starts in 5 minutes\n🚨 Get ready to watch!',
+                        'India vs Pakistan starts in 5 minutes\n🚨 Get ready to watch!\n📱 Open CricStreamZone now',
                         {
                             tag: 'test-5min',
                             requireInteraction: true,
-                            vibrate: [500, 200, 500, 200, 500]
+                            vibrate: [500, 200, 500, 200, 500],
+                            actions: [
+                                { action: 'watch', title: '🔴 Watch Now' },
+                                { action: 'dismiss', title: '✕ Dismiss' }
+                            ]
                         }
                     );
                 };
@@ -234,11 +420,15 @@
                 document.getElementById('testLive').onclick = () => {
                     this.showNotification(
                         '🔴 LIVE NOW!',
-                        'India vs Pakistan is now LIVE!\n⚡ Don\'t miss the action!',
+                        'India vs Pakistan is now LIVE!\n⚡ Don\'t miss the action!\n🏏 Toss won by India',
                         {
                             tag: 'test-live',
                             requireInteraction: true,
-                            vibrate: [1000, 300, 1000]
+                            vibrate: [1000, 300, 1000],
+                            actions: [
+                                { action: 'watch', title: '🎯 Watch Live' },
+                                { action: 'score', title: '📊 Live Score' }
+                            ]
                         }
                     );
                 };
@@ -246,56 +436,142 @@
                 document.getElementById('testEnd').onclick = () => {
                     this.showNotification(
                         '🏁 Match Finished',
-                        'India vs Pakistan has ended\n📊 Check the final scores!',
+                        'India vs Pakistan has ended\n🏆 India won by 6 wickets\n📊 Check highlights and final scores',
                         {
                             tag: 'test-end',
-                            requireInteraction: false
+                            requireInteraction: false,
+                            actions: [
+                                { action: 'highlights', title: '🎬 Highlights' },
+                                { action: 'scorecard', title: '📊 Scorecard' }
+                            ]
                         }
                     );
                 };
 
+                // Advanced Features
                 document.getElementById('testVibration').onclick = () => {
                     this.showNotification(
                         '📳 Vibration Test',
-                        'This notification includes vibration patterns',
+                        'This notification includes custom vibration patterns\n📱 Feel the rhythm!',
                         {
-                            vibrate: [200, 100, 200, 100, 200, 100, 500]
+                            vibrate: [200, 100, 200, 100, 200, 100, 500, 300, 200],
+                            tag: 'vibration-test'
                         }
                     );
                 };
 
                 document.getElementById('testActions').onclick = () => {
-                    // Note: Actions only work in Service Worker notifications
-                    this.addLog('⚠️ Action buttons only work with Service Worker notifications');
                     this.showNotification(
-                        '⚡ Actions Test',
-                        'This notification would have action buttons in a Service Worker',
+                        '⚡ Action Buttons Test',
+                        'This notification includes interactive action buttons\n👆 Try clicking the buttons below',
                         {
-                            tag: 'test-actions'
+                            tag: 'actions-test',
+                            requireInteraction: true,
+                            actions: [
+                                { action: 'like', title: '👍 Like' },
+                                { action: 'share', title: '📤 Share' },
+                                { action: 'close', title: '✕ Close' }
+                            ]
                         }
                     );
                 };
 
+                document.getElementById('testSound').onclick = () => {
+                    this.showNotification(
+                        '🔊 Sound Test',
+                        'This notification should play the default system sound\n🎵 Listen carefully!',
+                        {
+                            silent: false,
+                            tag: 'sound-test'
+                        }
+                    );
+                };
+
+                document.getElementById('testBadge').onclick = () => {
+                    this.showNotification(
+                        '🏷️ Badge Test',
+                        'This notification includes a badge icon\n🔍 Look for the small icon in notification area',
+                        {
+                            badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+                            tag: 'badge-test'
+                        }
+                    );
+                };
+
+                // Utilities
                 document.getElementById('clearAll').onclick = () => {
-                    this.log.innerHTML = '<div>📋 Test log cleared...</div>';
+                    this.log.innerHTML = '<div>📋 Test log cleared - Ready for new tests...</div>';
                     this.addLog('🗑️ All logs cleared');
                 };
+
+                document.getElementById('testAll').onclick = () => this.runAllTests();
+                document.getElementById('exportLog').onclick = () => this.exportLog();
             }
         }
 
-        // Initialize tester
-        const tester = new NotificationTester();
+        // Initialize tester when page loads
+        let tester;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            tester = new NotificationTester();
+        });
 
-        // Check if Service Worker is available
+        // Handle Service Worker messages
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').then(registration => {
-                tester.addLog('✅ Service Worker registered for enhanced notifications');
-            }).catch(error => {
-                tester.addLog(`❌ Service Worker registration failed: ${error.message}`);
+            navigator.serviceWorker.addEventListener('message', event => {
+                const { action, data } = event.data || {};
+                
+                if (tester) {
+                    switch (action) {
+                        case 'notificationClick':
+                            tester.addLog(`🖱️ Service Worker notification clicked: ${data.title}`, 'success');
+                            break;
+                        case 'notificationClose':
+                            tester.addLog(`❌ Service Worker notification closed: ${data.title}`);
+                            break;
+                        case 'actionClick':
+                            tester.addLog(`⚡ Action clicked: ${data.action} on ${data.title}`, 'success');
+                            break;
+                    }
+                }
             });
-        } else {
-            tester.addLog('⚠️ Service Worker not supported - using basic notifications only');
         }
+
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (tester) {
+                if (document.hidden) {
+                    tester.addLog('👁️ Page hidden - Testing background notifications');
+                } else {
+                    tester.addLog('👁️ Page visible - Back to foreground');
+                }
+            }
+        });
+
+        // Handle online/offline status
+        window.addEventListener('online', () => {
+            if (tester) tester.addLog('🌐 Back online', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            if (tester) tester.addLog('📡 Gone offline', 'warning');
+        });
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            if (tester) {
+                tester.addLog(`❌ JavaScript Error: ${event.message}`, 'error');
+            }
+        });
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', (event) => {
+            if (tester) {
+                tester.addLog(`❌ Unhandled Promise Rejection: ${event.reason}`, 'error');
+            }
+        });
+
+        console.log('🔔 CricStreamZone Notification Test Page Loaded');
     </script>
 </body>
 </html>
