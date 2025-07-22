@@ -1,5 +1,5 @@
-// 🔔 CricStreamZone Service Worker - Push Notifications & Caching
-const CACHE_NAME = 'cricstreamzone-v1.2';
+// 🔔 CricStreamZone Service Worker - Working Notification System
+const CACHE_NAME = 'cricstreamzone-v2.0';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -10,14 +10,15 @@ const urlsToCache = [
 
 // Install Service Worker
 self.addEventListener('install', event => {
-  console.log('Service Worker installing...');
+  console.log('🔧 Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log('📦 Cache opened');
         return cache.addAll(urlsToCache);
       })
       .then(() => {
+        console.log('✅ Service Worker installed');
         self.skipWaiting();
       })
   );
@@ -25,19 +26,23 @@ self.addEventListener('install', event => {
 
 // Activate Service Worker
 self.addEventListener('activate', event => {
-  console.log('Service Worker activating...');
+  console.log('🚀 Service Worker activating...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
+            console.log('🗑️ Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
+      console.log('✅ Service Worker activated');
       self.clients.claim();
+      
+      // Initialize notification system
+      initializeNotificationSystem();
     })
   );
 });
@@ -47,7 +52,6 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Return cached version or fetch from network
         if (response) {
           return response;
         }
@@ -57,14 +61,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Skip Waiting Message
-self.addEventListener('message', event => {
-  if (event.data && event.data.action === 'skipWaiting') {
-    self.skipWaiting();
-  }
-});
-
-// 🔔 NOTIFICATION SYSTEM - Background Processing
+// 🔔 NOTIFICATION SYSTEM VARIABLES
 let matches = [];
 let notificationSettings = {
   enabled: false,
@@ -74,78 +71,47 @@ let notificationSettings = {
   notifyEnd: true
 };
 let sentNotifications = new Set();
+let notificationInterval = null;
 
-// API URL
 const matchesApi = "https://script.google.com/macros/s/AKfycbxZfHUGsH19x3hZp5eeo3tEMJuQxvOPHpyS_LAqow4rlBciyrhP0NdaI2NzeZiyA5SF9A/exec";
 
-// Load settings from IndexedDB
-async function loadSettings() {
+// Initialize notification system
+function initializeNotificationSystem() {
+  console.log('🔔 Initializing notification system...');
+  
+  // Load settings from clients
+  loadNotificationSettings();
+  
+  // Start periodic checks
+  startNotificationChecker();
+  
+  // Fetch initial matches
+  fetchMatches();
+}
+
+// Load notification settings
+async function loadNotificationSettings() {
   try {
-    const settings = await getFromIndexedDB('notificationSettings');
-    if (settings) {
-      notificationSettings = { ...notificationSettings, ...settings };
-    }
-    
-    const notifications = await getFromIndexedDB('sentNotifications');
-    if (notifications) {
-      sentNotifications = new Set(notifications);
+    // Try to get settings from main app
+    const clients = await self.clients.matchAll();
+    if (clients.length > 0) {
+      clients[0].postMessage({ action: 'getSettings' });
     }
   } catch (error) {
     console.error('Error loading settings:', error);
   }
 }
 
-// Save settings to IndexedDB
-async function saveSettings() {
-  try {
-    await saveToIndexedDB('notificationSettings', notificationSettings);
-    await saveToIndexedDB('sentNotifications', Array.from(sentNotifications));
-  } catch (error) {
-    console.error('Error saving settings:', error);
-  }
-}
-
-// IndexedDB Helper Functions
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('CricStreamZoneDB', 1);
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('settings')) {
-        db.createObjectStore('settings', { keyPath: 'key' });
-      }
-    };
-  });
-}
-
-async function saveToIndexedDB(key, value) {
-  const db = await openDB();
-  const transaction = db.transaction(['settings'], 'readwrite');
-  const store = transaction.objectStore('settings');
-  await store.put({ key, value });
-}
-
-async function getFromIndexedDB(key) {
-  const db = await openDB();
-  const transaction = db.transaction(['settings'], 'readonly');
-  const store = transaction.objectStore('settings');
-  const result = await store.get(key);
-  return result ? result.value : null;
-}
-
 // Fetch matches data
 async function fetchMatches() {
   try {
+    console.log('📊 Fetching matches...');
     const response = await fetch(matchesApi);
     const data = await response.json();
     matches = data.matches || [];
-    console.log('Matches updated:', matches.length);
+    console.log(`✅ Fetched ${matches.length} matches`);
   } catch (error) {
-    console.error('Error fetching matches:', error);
+    console.error('❌ Error fetching matches:', error);
   }
 }
 
@@ -153,29 +119,24 @@ async function fetchMatches() {
 function getMatchStatus(matchTime, matchDuration, now) {
   const startTime = new Date(matchTime);
   const endTime = new Date(startTime.getTime() + (matchDuration * 60 * 1000));
-  const oneHourBefore = new Date(startTime.getTime() - 60 * 60 * 1000);
   
   if (now >= endTime) {
     return 'finished';
   } else if (now >= startTime) {
     return 'live';
-  } else if (now >= oneHourBefore) {
-    return 'coming_soon';
   } else {
     return 'upcoming';
   }
 }
 
 // Show notification
-function showNotification(title, body, data = {}) {
-  const options = {
-    body: body,
+async function showNotification(title, body, options = {}) {
+  const defaultOptions = {
     icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
     badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
-    tag: data.tag || `cricstream-${Date.now()}`,
-    data: data,
     requireInteraction: true,
     silent: false,
+    vibrate: [200, 100, 200],
     actions: [
       {
         action: 'view',
@@ -187,25 +148,36 @@ function showNotification(title, body, data = {}) {
         title: '✕ Dismiss',
         icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png'
       }
-    ]
+    ],
+    ...options
   };
-  
-  return self.registration.showNotification(title, options);
+
+  try {
+    await self.registration.showNotification(title, {
+      body: body,
+      ...defaultOptions
+    });
+    console.log('✅ Notification shown:', title);
+  } catch (error) {
+    console.error('❌ Error showing notification:', error);
+  }
 }
 
 // Check and send notifications
 async function checkNotifications() {
-  if (!notificationSettings.enabled || !matches.length) return;
-  
+  if (!notificationSettings.enabled || !matches.length) {
+    return;
+  }
+
   const now = new Date();
-  console.log('Checking notifications at:', now.toISOString());
-  
+  console.log(`🔍 Checking notifications at ${now.toLocaleTimeString()}`);
+
   for (const match of matches) {
     const matchTime = new Date(match.MatchTime);
     const duration = parseInt(match.MatchDuration) || 360;
     const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
     const matchId = match.Match.replace(/\s+/g, '-').toLowerCase();
-    
+
     // 15 minutes before
     const time15min = new Date(matchTime.getTime() - 15 * 60 * 1000);
     if (notificationSettings.notify15min && 
@@ -215,18 +187,17 @@ async function checkNotifications() {
       
       await showNotification(
         '🏏 Match Starting Soon!',
-        `${match.Team1} vs ${match.Team2} starts in 15 minutes`,
+        `${match.Team1} vs ${match.Team2} starts in 15 minutes\n🕐 ${matchTime.toLocaleTimeString()}`,
         {
           tag: `${matchId}-15min`,
-          matchId: matchId,
-          type: '15min'
+          data: { matchId, type: '15min', match }
         }
       );
       
       sentNotifications.add(`${matchId}-15min`);
-      console.log('Sent 15min notification for:', match.Match);
+      console.log(`✅ Sent 15min notification: ${match.Match}`);
     }
-    
+
     // 5 minutes before
     const time5min = new Date(matchTime.getTime() - 5 * 60 * 1000);
     if (notificationSettings.notify5min && 
@@ -236,18 +207,18 @@ async function checkNotifications() {
       
       await showNotification(
         '⏰ Match Starting Very Soon!',
-        `${match.Team1} vs ${match.Team2} starts in 5 minutes`,
+        `${match.Team1} vs ${match.Team2} starts in 5 minutes\n🚨 Get ready to watch!`,
         {
           tag: `${matchId}-5min`,
-          matchId: matchId,
-          type: '5min'
+          data: { matchId, type: '5min', match },
+          vibrate: [500, 200, 500, 200, 500]
         }
       );
       
       sentNotifications.add(`${matchId}-5min`);
-      console.log('Sent 5min notification for:', match.Match);
+      console.log(`✅ Sent 5min notification: ${match.Match}`);
     }
-    
+
     // Match started
     if (notificationSettings.notifyStart && 
         now >= matchTime && 
@@ -256,18 +227,18 @@ async function checkNotifications() {
       
       await showNotification(
         '🔴 LIVE NOW!',
-        `${match.Team1} vs ${match.Team2} is now LIVE!`,
+        `${match.Team1} vs ${match.Team2} is now LIVE!\n⚡ Don't miss the action!`,
         {
           tag: `${matchId}-start`,
-          matchId: matchId,
-          type: 'start'
+          data: { matchId, type: 'start', match },
+          vibrate: [1000, 300, 1000]
         }
       );
       
       sentNotifications.add(`${matchId}-start`);
-      console.log('Sent start notification for:', match.Match);
+      console.log(`✅ Sent start notification: ${match.Match}`);
     }
-    
+
     // Match ended
     if (notificationSettings.notifyEnd && 
         now >= endTime && 
@@ -275,39 +246,67 @@ async function checkNotifications() {
         !sentNotifications.has(`${matchId}-end`)) {
       
       await showNotification(
-        '🏁 Match Ended',
-        `${match.Team1} vs ${match.Team2} has finished`,
+        '🏁 Match Finished',
+        `${match.Team1} vs ${match.Team2} has ended\n📊 Check the final scores!`,
         {
           tag: `${matchId}-end`,
-          matchId: matchId,
-          type: 'end'
+          data: { matchId, type: 'end', match },
+          requireInteraction: false
         }
       );
       
       sentNotifications.add(`${matchId}-end`);
-      console.log('Sent end notification for:', match.Match);
+      console.log(`✅ Sent end notification: ${match.Match}`);
     }
   }
-  
-  // Clean old notifications (older than 24 hours)
+
+  // Cleanup old notifications
+  cleanupOldNotifications(now);
+}
+
+// Cleanup old notifications
+function cleanupOldNotifications(now) {
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  let cleaned = 0;
+
   matches.forEach(match => {
     const matchTime = new Date(match.MatchTime);
     if (matchTime < oneDayAgo) {
       const matchId = match.Match.replace(/\s+/g, '-').toLowerCase();
-      sentNotifications.delete(`${matchId}-15min`);
-      sentNotifications.delete(`${matchId}-5min`);
-      sentNotifications.delete(`${matchId}-start`);
-      sentNotifications.delete(`${matchId}-end`);
+      ['15min', '5min', 'start', 'end'].forEach(type => {
+        const notifId = `${matchId}-${type}`;
+        if (sentNotifications.has(notifId)) {
+          sentNotifications.delete(notifId);
+          cleaned++;
+        }
+      });
     }
   });
-  
-  await saveSettings();
+
+  if (cleaned > 0) {
+    console.log(`🧹 Cleaned ${cleaned} old notifications`);
+  }
+}
+
+// Start notification checker
+function startNotificationChecker() {
+  // Clear existing interval
+  if (notificationInterval) {
+    clearInterval(notificationInterval);
+  }
+
+  // Check every minute
+  notificationInterval = setInterval(async () => {
+    await fetchMatches();
+    await checkNotifications();
+  }, 60000);
+
+  console.log('⏰ Notification checker started');
 }
 
 // Handle notification click
 self.addEventListener('notificationclick', event => {
-  console.log('Notification clicked:', event.notification.data);
+  console.log('🖱️ Notification clicked:', event.notification.data);
   
   event.notification.close();
   
@@ -332,18 +331,27 @@ self.addEventListener('notificationclick', event => {
 
 // Handle notification close
 self.addEventListener('notificationclose', event => {
-  console.log('Notification closed:', event.notification.data);
+  console.log('❌ Notification closed:', event.notification.data);
 });
 
 // Message handling from main app
 self.addEventListener('message', event => {
-  const { action, data } = event.data;
+  const { action, data } = event.data || {};
+  
+  console.log('📨 Message received:', action, data);
   
   switch (action) {
     case 'updateSettings':
       notificationSettings = { ...notificationSettings, ...data };
-      saveSettings();
-      console.log('Settings updated:', notificationSettings);
+      console.log('🔧 Settings updated:', notificationSettings);
+      break;
+      
+    case 'getSettings':
+      // Send current settings back to client
+      event.ports[0]?.postMessage({
+        action: 'settingsResponse',
+        data: notificationSettings
+      });
       break;
       
     case 'skipWaiting':
@@ -352,6 +360,17 @@ self.addEventListener('message', event => {
       
     case 'checkNotifications':
       checkNotifications();
+      break;
+      
+    case 'testNotification':
+      showNotification(
+        '🧪 Test Notification',
+        'CricStreamZone notifications are working perfectly! 🎉',
+        {
+          tag: 'test-notification',
+          requireInteraction: false
+        }
+      );
       break;
   }
 });
@@ -368,63 +387,36 @@ self.addEventListener('sync', event => {
   }
 });
 
-// Periodic background sync (if supported)
-self.addEventListener('periodicsync', event => {
-  if (event.tag === 'match-notifications') {
-    event.waitUntil(
-      Promise.all([
-        fetchMatches(),
-        checkNotifications()
-      ])
-    );
-  }
-});
-
-// Initialize on service worker start
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    Promise.all([
-      loadSettings(),
-      fetchMatches()
-    ]).then(() => {
-      console.log('Service Worker initialized with notification system');
-      
-      // Set up periodic checks every minute
-      setInterval(async () => {
-        await fetchMatches();
-        await checkNotifications();
-      }, 60000);
-      
-      // Initial check
-      checkNotifications();
-    })
-  );
-});
-
 // Handle push events (for future server-side notifications)
 self.addEventListener('push', event => {
-  console.log('Push event received:', event);
+  console.log('📬 Push event received:', event);
   
   if (event.data) {
-    const data = event.data.json();
-    event.waitUntil(
-      showNotification(data.title, data.body, data.data)
-    );
+    try {
+      const data = event.data.json();
+      event.waitUntil(
+        showNotification(data.title, data.body, data.options)
+      );
+    } catch (error) {
+      console.error('Error handling push event:', error);
+    }
   }
-});
-
-// Background fetch (for offline support)
-self.addEventListener('backgroundfetch', event => {
-  console.log('Background fetch:', event);
 });
 
 // Error handling
 self.addEventListener('error', event => {
-  console.error('Service Worker error:', event.error);
+  console.error('❌ Service Worker error:', event.error);
 });
 
 self.addEventListener('unhandledrejection', event => {
-  console.error('Service Worker unhandled rejection:', event.reason);
+  console.error('❌ Service Worker unhandled rejection:', event.reason);
+});
+
+// Skip waiting message
+self.addEventListener('message', event => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
 
 console.log('🔔 CricStreamZone Service Worker loaded with notification system');
