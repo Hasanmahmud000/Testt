@@ -1,235 +1,310 @@
-// Advanced Notification Worker for Background Processing
-class AdvancedNotificationWorker {
+// 🔔 Dedicated Notification Worker for Enhanced Background Processing
+class NotificationManager {
   constructor() {
     this.matches = [];
-    this.notificationQueue = [];
-    this.isProcessing = false;
+    this.settings = {
+      enabled: false,
+      notify15min: true,
+      notify5min: true,
+      notifyStart: true,
+      notifyEnd: true
+    };
+    this.sentNotifications = new Set();
+    this.apiUrl = "https://script.google.com/macros/s/AKfycbxZfHUGsH19x3hZp5eeo3tEMJuQxvOPHpyS_LAqow4rlBciyrhP0NdaI2NzeZiyA5SF9A/exec";
     this.init();
   }
 
-  init() {
-    // Check for matches every minute in background
-    setInterval(() => {
-      this.checkMatches();
-    }, 60000); // 1 minute
-
-    // Process notification queue every 5 seconds
-    setInterval(() => {
-      this.processNotificationQueue();
-    }, 5000);
-
-    console.log('Advanced Notification Worker initialized');
+  async init() {
+    await this.loadSettings();
+    await this.fetchMatches();
+    this.startPeriodicCheck();
+    console.log('🔔 Notification Manager initialized');
   }
 
-  async checkMatches() {
+  async loadSettings() {
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbxZfHUGsH19x3hZp5eeo3tEMJuQxvOPHpyS_LAqow4rlBciyrhP0NdaI2NzeZiyA5SF9A/exec');
-      const data = await response.json();
+      const settings = localStorage.getItem('notificationSettings');
+      if (settings) {
+        this.settings = { ...this.settings, ...JSON.parse(settings) };
+      }
       
-      if (data.matches) {
-        this.matches = data.matches;
-        this.scheduleNotifications();
+      const notifications = localStorage.getItem('sentNotifications');
+      if (notifications) {
+        this.sentNotifications = new Set(JSON.parse(notifications));
       }
     } catch (error) {
-      console.error('Error fetching matches in background:', error);
+      console.error('Error loading notification settings:', error);
     }
   }
 
-  scheduleNotifications() {
-    const now = new Date();
-    
-    this.matches.forEach(match => {
-      const matchTime = new Date(match.MatchTime);
-      const duration = parseInt(match.MatchDuration) || 360;
-      const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
-      
-      // 15 minutes before
-      const time15Min = matchTime.getTime() - (15 * 60 * 1000);
-      if (time15Min > now.getTime() && time15Min <= now.getTime() + 60000) {
-        this.addToQueue({
-          type: '15min',
-          match: match,
-          time: time15Min,
-          title: '🏏 Match Starting Soon!',
-          body: `${match.Team1} vs ${match.Team2} starts in 15 minutes`
-        });
-      }
-
-      // 5 minutes before
-      const time5Min = matchTime.getTime() - (5 * 60 * 1000);
-      if (time5Min > now.getTime() && time5Min <= now.getTime() + 60000) {
-        this.addToQueue({
-          type: '5min',
-          match: match,
-          time: time5Min,
-          title: '⚡ Match Starting Very Soon!',
-          body: `${match.Team1} vs ${match.Team2} starts in 5 minutes`
-        });
-      }
-
-      // Match start
-      if (matchTime.getTime() > now.getTime() && matchTime.getTime() <= now.getTime() + 60000) {
-        this.addToQueue({
-          type: 'live',
-          match: match,
-          time: matchTime.getTime(),
-          title: '🔴 LIVE NOW!',
-          body: `${match.Team1} vs ${match.Team2} is now LIVE!`
-        });
-      }
-
-      // Match end
-      if (endTime.getTime() > now.getTime() && endTime.getTime() <= now.getTime() + 60000) {
-        this.addToQueue({
-          type: 'end',
-          match: match,
-          time: endTime.getTime(),
-          title: '🏁 Match Ended',
-          body: `${match.Team1} vs ${match.Team2} has ended`
-        });
-      }
-    });
-  }
-
-  addToQueue(notification) {
-    // Check if notification already exists
-    const exists = this.notificationQueue.some(n => 
-      n.type === notification.type && 
-      n.match.Team1 === notification.match.Team1 && 
-      n.match.Team2 === notification.match.Team2
-    );
-
-    if (!exists) {
-      this.notificationQueue.push(notification);
-      console.log('Added notification to queue:', notification.title);
+  async saveSettings() {
+    try {
+      localStorage.setItem('notificationSettings', JSON.stringify(this.settings));
+      localStorage.setItem('sentNotifications', JSON.stringify(Array.from(this.sentNotifications)));
+    } catch (error) {
+      console.error('Error saving notification settings:', error);
     }
   }
 
-  async processNotificationQueue() {
-    if (this.isProcessing || this.notificationQueue.length === 0) return;
-
-    this.isProcessing = true;
-    const now = new Date().getTime();
-
-    // Process notifications that are due
-    const dueNotifications = this.notificationQueue.filter(n => n.time <= now);
-    
-    for (const notification of dueNotifications) {
-      await this.sendNotification(notification);
-      
-      // Remove from queue
-      const index = this.notificationQueue.indexOf(notification);
-      if (index > -1) {
-        this.notificationQueue.splice(index, 1);
-      }
+  async fetchMatches() {
+    try {
+      const response = await fetch(this.apiUrl);
+      const data = await response.json();
+      this.matches = data.matches || [];
+      console.log(`📊 Fetched ${this.matches.length} matches for notification check`);
+    } catch (error) {
+      console.error('Error fetching matches for notifications:', error);
     }
-
-    // Clean up old notifications (older than 1 hour)
-    this.notificationQueue = this.notificationQueue.filter(n => 
-      n.time > now - (60 * 60 * 1000)
-    );
-
-    this.isProcessing = false;
   }
 
-  async sendNotification(notification) {
-    // Check if notifications are enabled
-    const notificationsEnabled = localStorage.getItem('notificationsEnabled') === 'true';
+  getMatchStatus(matchTime, matchDuration, now) {
+    const startTime = new Date(matchTime);
+    const endTime = new Date(startTime.getTime() + (matchDuration * 60 * 1000));
     
-    if (!notificationsEnabled || Notification.permission !== 'granted') {
-      console.log('Notifications disabled or permission denied');
+    if (now >= endTime) {
+      return 'finished';
+    } else if (now >= startTime) {
+      return 'live';
+    } else {
+      return 'upcoming';
+    }
+  }
+
+  async showNotification(title, body, options = {}) {
+    if (!this.settings.enabled || Notification.permission !== 'granted') {
       return;
     }
 
+    const defaultOptions = {
+      icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+      badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+      requireInteraction: true,
+      silent: false,
+      vibrate: [200, 100, 200],
+      ...options
+    };
+
     try {
-      const notif = new Notification(notification.title, {
-        body: notification.body,
-        icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
-        badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
-        tag: `${notification.type}-${notification.match.Team1}-${notification.match.Team2}`,
-        requireInteraction: true,
-        silent: false,
-        vibrate: [200, 100, 200],
-        data: {
-          match: notification.match,
-          type: notification.type,
-          timestamp: Date.now()
-        }
+      const notification = new Notification(title, {
+        body: body,
+        ...defaultOptions
       });
 
-      notif.onclick = () => {
+      notification.onclick = () => {
         window.focus();
-        notif.close();
-        
-        // Navigate to live matches if needed
-        if (typeof showCategory === 'function') {
-          showCategory('live');
-        }
+        notification.close();
       };
 
-      // Auto close after 15 seconds
-      setTimeout(() => {
-        notif.close();
-      }, 15000);
-
-      console.log('Notification sent:', notification.title);
-      
-      // Store notification history
-      this.storeNotificationHistory(notification);
-      
-    } catch (error) {
-      console.error('Error sending notification:', error);
-    }
-  }
-
-  storeNotificationHistory(notification) {
-    try {
-      let history = JSON.parse(localStorage.getItem('notificationHistory') || '[]');
-      
-      history.push({
-        title: notification.title,
-        body: notification.body,
-        type: notification.type,
-        match: `${notification.match.Team1} vs ${notification.match.Team2}`,
-        timestamp: Date.now()
-      });
-
-      // Keep only last 50 notifications
-      if (history.length > 50) {
-        history = history.slice(-50);
+      // Auto close after 15 seconds for non-critical notifications
+      if (!options.requireInteraction) {
+        setTimeout(() => notification.close(), 15000);
       }
 
-      localStorage.setItem('notificationHistory', JSON.stringify(history));
+      return notification;
     } catch (error) {
-      console.error('Error storing notification history:', error);
+      console.error('Error showing notification:', error);
     }
   }
 
-  getNotificationHistory() {
-    try {
-      return JSON.parse(localStorage.getItem('notificationHistory') || '[]');
-    } catch (error) {
-      console.error('Error getting notification history:', error);
-      return [];
+  async checkAndSendNotifications() {
+    if (!this.settings.enabled || !this.matches.length) {
+      return;
+    }
+
+    const now = new Date();
+    console.log(`🔍 Checking notifications at ${now.toLocaleTimeString()}`);
+
+    for (const match of this.matches) {
+      const matchTime = new Date(match.MatchTime);
+      const duration = parseInt(match.MatchDuration) || 360;
+      const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
+      const matchId = match.Match.replace(/\s+/g, '-').toLowerCase();
+
+      // 15 minutes before notification
+      const time15min = new Date(matchTime.getTime() - 15 * 60 * 1000);
+      if (this.settings.notify15min && 
+          now >= time15min && 
+          now < matchTime && 
+          !this.sentNotifications.has(`${matchId}-15min`)) {
+        
+        await this.showNotification(
+          '🏏 Match Alert - 15 Minutes!',
+          `${match.Team1} vs ${match.Team2} starts in 15 minutes\n🕐 ${matchTime.toLocaleTimeString()}`,
+          {
+            tag: `${matchId}-15min`,
+            requireInteraction: true,
+            actions: [
+              { action: 'view', title: '👀 View Match' },
+              { action: 'dismiss', title: '✕ Dismiss' }
+            ]
+          }
+        );
+        
+        this.sentNotifications.add(`${matchId}-15min`);
+        console.log(`✅ Sent 15min notification: ${match.Match}`);
+      }
+
+      // 5 minutes before notification
+      const time5min = new Date(matchTime.getTime() - 5 * 60 * 1000);
+      if (this.settings.notify5min && 
+          now >= time5min && 
+          now < matchTime && 
+          !this.sentNotifications.has(`${matchId}-5min`)) {
+        
+        await this.showNotification(
+          '⏰ Match Starting Very Soon!',
+          `${match.Team1} vs ${match.Team2} starts in 5 minutes\n🚨 Get ready to watch!`,
+          {
+            tag: `${matchId}-5min`,
+            requireInteraction: true,
+            vibrate: [300, 100, 300, 100, 300],
+            actions: [
+              { action: 'watch', title: '🔴 Watch Now' },
+              { action: 'dismiss', title: '✕ Later' }
+            ]
+          }
+        );
+        
+        this.sentNotifications.add(`${matchId}-5min`);
+        console.log(`✅ Sent 5min notification: ${match.Match}`);
+      }
+
+      // Match started notification
+      if (this.settings.notifyStart && 
+          now >= matchTime && 
+          now < new Date(matchTime.getTime() + 10 * 60 * 1000) && 
+          !this.sentNotifications.has(`${matchId}-start`)) {
+        
+        await this.showNotification(
+          '🔴 LIVE NOW!',
+          `${match.Team1} vs ${match.Team2} is now LIVE!\n⚡ Don't miss the action!`,
+          {
+            tag: `${matchId}-start`,
+            requireInteraction: true,
+            vibrate: [500, 200, 500],
+            actions: [
+              { action: 'watch', title: '🎯 Watch Live' },
+              { action: 'dismiss', title: '✕ Close' }
+            ]
+          }
+        );
+        
+        this.sentNotifications.add(`${matchId}-start`);
+        console.log(`✅ Sent start notification: ${match.Match}`);
+      }
+
+      // Match ended notification
+      if (this.settings.notifyEnd && 
+          now >= endTime && 
+          now < new Date(endTime.getTime() + 30 * 60 * 1000) && 
+          !this.sentNotifications.has(`${matchId}-end`)) {
+        
+        await this.showNotification(
+          '🏁 Match Finished',
+          `${match.Team1} vs ${match.Team2} has ended\n📊 Check highlights and scores`,
+          {
+            tag: `${matchId}-end`,
+            requireInteraction: false,
+            actions: [
+              { action: 'view', title: '📊 View Results' },
+              { action: 'dismiss', title: '✕ Close' }
+            ]
+          }
+        );
+        
+        this.sentNotifications.add(`${matchId}-end`);
+        console.log(`✅ Sent end notification: ${match.Match}`);
+      }
+    }
+
+    // Cleanup old notifications (older than 24 hours)
+    this.cleanupOldNotifications(now);
+    await this.saveSettings();
+  }
+
+  cleanupOldNotifications(now) {
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    let cleanedCount = 0;
+
+    this.matches.forEach(match => {
+      const matchTime = new Date(match.MatchTime);
+      if (matchTime < oneDayAgo) {
+        const matchId = match.Match.replace(/\s+/g, '-').toLowerCase();
+        const notifications = [
+          `${matchId}-15min`,
+          `${matchId}-5min`,
+          `${matchId}-start`,
+          `${matchId}-end`
+        ];
+        
+        notifications.forEach(notifId => {
+          if (this.sentNotifications.has(notifId)) {
+            this.sentNotifications.delete(notifId);
+            cleanedCount++;
+          }
+        });
+      }
+    });
+
+    if (cleanedCount > 0) {
+      console.log(`🧹 Cleaned up ${cleanedCount} old notifications`);
     }
   }
 
-  clearNotificationHistory() {
-    localStorage.removeItem('notificationHistory');
+  startPeriodicCheck() {
+    // Check every minute
+    setInterval(async () => {
+      await this.fetchMatches();
+      await this.checkAndSendNotifications();
+    }, 60000);
+
+    // Initial check
+    setTimeout(() => {
+      this.checkAndSendNotifications();
+    }, 5000);
+  }
+
+  updateSettings(newSettings) {
+    this.settings = { ...this.settings, ...newSettings };
+    this.saveSettings();
+    console.log('🔧 Notification settings updated:', this.settings);
   }
 
   // Test notification function
-  sendTestNotification() {
-    this.sendNotification({
-      title: '🧪 Test Notification',
-      body: 'This is a test notification from CricStreamZone',
-      type: 'test',
-      match: { Team1: 'Test', Team2: 'Team' }
-    });
+  async testNotification() {
+    await this.showNotification(
+      '🧪 Test Notification',
+      'CricStreamZone notifications are working perfectly! 🎉',
+      {
+        tag: 'test-notification',
+        requireInteraction: false
+      }
+    );
+  }
+
+  // Get notification statistics
+  getStats() {
+    return {
+      totalMatches: this.matches.length,
+      sentNotifications: this.sentNotifications.size,
+      settings: this.settings,
+      lastCheck: new Date().toISOString()
+    };
   }
 }
 
-// Initialize the advanced notification worker
+// Initialize notification manager if in main thread
 if (typeof window !== 'undefined') {
-  window.advancedNotificationWorker = new AdvancedNotificationWorker();
+  window.notificationManager = new NotificationManager();
+  
+  // Expose global functions
+  window.testNotification = () => window.notificationManager.testNotification();
+  window.getNotificationStats = () => window.notificationManager.getStats();
 }
+
+// Export for service worker
+if (typeof self !== 'undefined' && self.importScripts) {
+  self.NotificationManager = NotificationManager;
+}
+
+console.log('🔔 Notification Worker loaded successfully');
