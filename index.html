@@ -7,297 +7,193 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0af">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js"></script>
+  
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCzWmJUAceuYGjzbVv0ceu7RU78fVs0OM4",
+      authDomain: "criczone-b1c64.firebaseapp.com",
+      projectId: "criczone-b1c64",
+      storageBucket: "criczone-b1c64.firebasestorage.app",
+      messagingSenderId: "508655160995",
+      appId: "1:508655160995:web:813362e519ed6f79b07916"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    // VAPID Key
+    const vapidKey = "BIkxX-Gb1nBgnZJ3sNoG0-6qQjAus7X4PdKXEEBXRewnxpbSjPNl4tVG3TGuejcFhLXmED4qEkqWAZ0SEE2f8B4";
+
+    window.initializeNotifications = async function() {
+      try {
+        // Request notification permission
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          console.log('Notification permission granted.');
+          
+          // Get FCM token
+          const token = await getToken(messaging, { vapidKey });
+          if (token) {
+            console.log('FCM Token:', token);
+            localStorage.setItem('fcmToken', token);
+            
+            // Show success message
+            showNotificationStatus('🔔 Notifications enabled! You\'ll get match alerts.', 'success');
+          }
+        } else {
+          showNotificationStatus('🔕 Notifications disabled. Enable for match alerts.', 'warning');
+        }
+      } catch (error) {
+        console.error('Error initializing notifications:', error);
+        showNotificationStatus('❌ Notification setup failed.', 'error');
+      }
+    };
+
+    // Handle foreground messages
+    onMessage(messaging, (payload) => {
+      console.log('Message received in foreground:', payload);
+      
+      if (payload.notification) {
+        showInAppNotification(payload.notification.title, payload.notification.body);
+      }
+    });
+
+    window.messaging = messaging;
+  </script>
+
   <style>
-    /* Previous CSS styles remain same... */
-    body {
-      margin: 0;
-      background: #111;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    nav {
-      background: #222;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .logo {
-      font-size: 20px;
-      font-weight: bold;
-      color: #0ff;
-    }
+    /* Existing styles... */
 
-    /* Notification Panel Styles */
-    .notification-panel {
-      background: linear-gradient(135deg, #1e1e2e, #2a2a3a);
-      border-radius: 15px;
-      padding: 20px;
-      margin: 15px;
-      border: 1px solid #333;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-
-    .notification-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 1px solid #333;
-    }
-
-    .notification-title {
-      color: #0af;
-      font-weight: bold;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* Toggle Switch */
-    .notification-toggle {
+    .menu-dropdown {
       position: relative;
       display: inline-block;
-      width: 60px;
-      height: 30px;
     }
 
-    .notification-toggle input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .toggle-slider {
-      position: absolute;
+    .menu-toggle {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #fff;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #555;
-      transition: .4s;
-      border-radius: 30px;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+      padding: 5px;
+      margin-left: 0px;
+      margin-right: 20px;
     }
 
-    .toggle-slider:before {
+    .dropdown-content {
+      display: none;
       position: absolute;
-      content: "";
-      height: 22px;
-      width: 22px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-
-    input:checked + .toggle-slider {
-      background-color: #0af;
-      box-shadow: 0 0 10px rgba(0,170,255,0.3);
-    }
-
-    input:checked + .toggle-slider:before {
-      transform: translateX(30px);
-    }
-
-    .notification-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin: 20px 0;
-    }
-
-    .notification-option {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #ccc;
-      font-size: 14px;
-      padding: 10px;
-      background: #333;
+      right: 0;
+      top: 30px;
+      background-color: #222;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.7);
       border-radius: 8px;
+      z-index: 1001;
+      overflow: hidden;
+      min-width: 180px;
+    }
+
+    .dropdown-content a {
+      color: #fff;
+      padding: 10px 16px;
+      display: block;
+      text-decoration: none;
+      font-size: 14px;
       transition: background 0.3s ease;
     }
 
-    .notification-option:hover {
-      background: #444;
+    .dropdown-content a:hover {
+      background-color: #0af;
     }
 
-    .notification-option input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #0af;
-      cursor: pointer;
+    .menu-dropdown:hover .dropdown-content {
+      display: block;
     }
 
+    /* Notification Status Bar */
     .notification-status {
-      text-align: center;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      margin-top: 15px;
-    }
-
-    .status-enabled {
-      background: linear-gradient(135deg, rgba(0, 170, 255, 0.2), rgba(0, 170, 255, 0.1));
-      color: #0af;
-      border: 2px solid #0af;
-    }
-
-    .status-disabled {
-      background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 107, 53, 0.1));
-      color: #ff6b35;
-      border: 2px solid #ff6b35;
-    }
-
-    .status-denied {
-      background: linear-gradient(135deg, rgba(255, 0, 0, 0.2), rgba(255, 0, 0, 0.1));
-      color: #ff4444;
-      border: 2px solid #ff4444;
-    }
-
-    /* Test Notification Button */
-    .test-notification-btn {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #0af, #0099cc);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: all 0.3s ease;
-    }
-
-    .test-notification-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0,170,255,0.3);
-    }
-
-    .test-notification-btn:disabled {
-      background: #555;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    /* Permission Modal */
-    .permission-modal {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      z-index: 9999;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      backdrop-filter: blur(5px);
-    }
-
-    .permission-modal.active {
-      display: flex;
-    }
-
-    .permission-content {
-      background: linear-gradient(135deg, #222, #333);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 90%;
-      width: 400px;
+      right: 0;
+      padding: 10px;
       text-align: center;
-      border: 2px solid #0af;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      animation: modalSlideIn 0.3s ease;
-    }
-
-    @keyframes modalSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-50px) scale(0.9);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    .permission-icon {
-      font-size: 60px;
-      margin-bottom: 20px;
-      animation: bounce 2s infinite;
-    }
-
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-      }
-      40% {
-        transform: translateY(-10px);
-      }
-      60% {
-        transform: translateY(-5px);
-      }
-    }
-
-    .permission-title {
-      color: #0af;
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-
-    .permission-text {
-      color: #ccc;
-      font-size: 16px;
-      line-height: 1.6;
-      margin-bottom: 25px;
-    }
-
-    .permission-buttons {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-    }
-
-    .permission-btn {
-      padding: 15px 25px;
-      border: none;
-      border-radius: 10px;
+      font-size: 14px;
       font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 16px;
+      z-index: 10000;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
     }
 
-    .btn-allow {
-      background: linear-gradient(135deg, #0af, #0099cc);
+    .notification-status.show {
+      transform: translateY(0);
+    }
+
+    .notification-status.success {
+      background: #4CAF50;
       color: white;
     }
 
-    .btn-allow:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,170,255,0.4);
+    .notification-status.warning {
+      background: #FF9800;
+      color: white;
     }
 
-    .btn-later {
-      background: #555;
-      color: #ccc;
+    .notification-status.error {
+      background: #F44336;
+      color: white;
     }
 
-    .btn-later:hover {
-      background: #666;
+    /* In-app notification */
+    .in-app-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #222;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 10001;
+      max-width: 300px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      border-left: 4px solid #0af;
     }
 
-    /* Drawer Styles */
+    .in-app-notification.show {
+      transform: translateX(0);
+    }
+
+    .notification-bell {
+      position: relative;
+      background: none;
+      border: none;
+      color: #0af;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 8px;
+      margin-right: 10px;
+      transition: color 0.3s ease;
+    }
+
+    .notification-bell:hover {
+      color: #0ff;
+    }
+
+    .notification-bell.enabled {
+      color: #4CAF50;
+    }
+
+    .notification-bell.disabled {
+      color: #888;
+    }
+
+    /* Drawer (Side menu) */
     #drawer {
       position: fixed;
       top: 0;
@@ -343,6 +239,7 @@
       cursor: pointer;
     }
 
+    /* Backdrop overlay */
     #drawerOverlay {
       display: none;
       position: fixed;
@@ -357,18 +254,26 @@
       display: block;
     }
 
-    /* Rest of the existing styles... */
-    .menu-toggle {
-      background: none;
-      border: none;
-      font-size: 22px;
+    body {
+      margin: 0;
+      background: #111;
       color: #fff;
-      cursor: pointer;
-      padding: 5px;
-      margin-left: 0px;
-      margin-right: 20px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    nav {
+      background: #222;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: #0ff;
     }
 
+    /* Search Container - Mobile Fixed */
     .search-container {
       position: relative;
       display: flex;
@@ -391,6 +296,109 @@
       z-index: 1000;
     }
 
+    .search-icon:hover {
+      color: #0ff;
+    }
+
+    .search-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1500;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .search-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .search-input {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: #222;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 16px;
+      padding: 0 60px 0 20px;
+      z-index: 1600;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
+      border-bottom: 2px solid #0af;
+      box-sizing: border-box;
+    }
+
+    .search-input.active {
+      transform: translateY(0);
+    }
+
+    .search-input::placeholder {
+      color: #888;
+    }
+
+    .search-close {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #0af;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 1700;
+      opacity: 0;
+      transform: translateY(-100%);
+      transition: all 0.3s ease;
+      min-width: 30px;
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-close.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Mobile specific fixes */
+    @media (max-width: 768px) {
+      .search-icon {
+        font-size: 18px;
+        padding: 10px;
+      }
+
+      .search-input {
+        font-size: 16px;
+        -webkit-appearance: none;
+        -webkit-border-radius: 0;
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-bottom: 2px solid #0ff;
+      }
+    }
+
+    /* Prevent zoom on iOS */
+    @media screen and (max-width: 768px) {
+      .search-input {
+        font-size: 16px !important;
+        transform-origin: left top;
+      }
+    }
+
     .notice {
       background: #000;
       color: #fff;
@@ -404,39 +412,99 @@
       width: 100%;
     }
 
-    .sub-tab-btns {
-      display: flex;
-      justify-content: space-around;
-      padding: 10px;
-      background: #222;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-    }
-
-    .sub-tab-btns button {
-      flex: 1;
-      min-width: 85.5px;
-      max-width: 120px;
-      padding: 8px 5px;
-      border: none;
-      border-radius: 20px;
-      background: #333;
+    .notice marquee {
       color: #fff;
-      font-weight: 600;
-      font-size: 14px;
+    }
+
+    .server-content {
+  background: #222;
+  border-radius: 50px;
+  padding: 16px;
+  max-width: 80%;
+  width: 280px;
+  max-height: 80%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  /* স্ক্রলবার সম্পূর্ণ লুকানো */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Webkit browsers এর জন্য স্ক্রলবার লুকানো */
+.server-content::-webkit-scrollbar {
+  display: none;
+}
+
+
+    .server-list {
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+    }
+
+    .server-item {
+      color: #fff;
+      padding: 10px 0;
       text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: normal;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 5px;
+      width: 100%;
+      background: none;
+      border: none;
     }
 
-    .sub-tab-btns .active {
-      background: #0af;
-      transform: scale(1.05);
+    .server-item:hover {
+      color: #0af;
     }
 
+ /* Modified sub-tab styles */
+.sub-tab-btns {
+  display: flex;
+  justify-content: space-around; /* Distribute space evenly */
+  padding: 10px;
+  background: #222;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  overflow-x: auto; /* Allow horizontal scrolling if needed */
+}
+
+.sub-tab-btns button {
+  flex: 1; /* Equal width for buttons */
+  min-width: 85.5px; /* Minimum width for buttons */
+  max-width: 120px; /* Maximum width for buttons */
+  padding: 8px 5px;
+  border: none;
+  border-radius: 20px;
+  background: #333;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.sub-tab-btns .active {
+  background: #0af;
+  transform: scale(1.05);
+  box-shadow: 0 0 px rgba(0,170,255,0.5);
+}
+
+
+    /* Bottom tab styles */
     .bottom-tab-btns {
       position: fixed;
       bottom: 0;
@@ -465,11 +533,15 @@
       background: #0af;
       color: #fff;
     }
-
-    #match-list {
-      padding: 10px 10px 70px;
+    .bottom-tab-btns button:hover:not(.active) {
+      background: #555;
     }
 
+    #match-list {
+      padding: 10px 10px 70px; /* Keep space for bottom tab */
+    }
+
+    /* Match Card - SportzX Style */
     .match {
       background: linear-gradient(135deg, #1e1e2e, #2a2a3a);
       border-radius: 12px;
@@ -485,8 +557,8 @@
     }
 
     .match-header {
-      background: #000;
-      color: #fff;
+      background: #000; /* Match Title box black */
+      color: #fff; /* Text white */
       padding: 8px 15px;
       font-size: 13px;
       font-weight: 600;
@@ -495,6 +567,13 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+    }
+
+    .match-title-logo {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      object-fit: cover;
     }
 
     .match-content {
@@ -512,8 +591,8 @@
     }
 
     .match-time-date {
-      font-size: 12px;
-      color: #fff;
+      font-size: 12px; /* Increased for Today and Upcoming */
+      color: #fff; /* Text white */
       margin-bottom: 5px;
       font-weight: 600;
     }
@@ -568,25 +647,40 @@
       text-align: right;
     }
 
+    .match-status {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .countdown-text {
-      font-size: 14px;
-      color: #fff;
+      font-size: 14px; /* Increased */
+      color: #fff; /* White color */
       font-weight: 600;
     }
 
+    /* Live Timer Style */
     .live-timer {
       font-size: 15px;
-      color: #fff;
+      color: #fff; /* White color */
       font-weight: 600;
       font-family: 'Courier New', monospace;
     }
 
+    /* Day Name Style for Upcoming */
     .day-name {
-      font-size: 14px;
-      color: #fff;
+      font-size: 14px; /* Increased */
+      color: #fff; /* White color */
       font-weight: 700;
     }
 
+    /* Finished Status Style */
     .finished-status {
       font-size: 12px;
       color: #888;
@@ -596,53 +690,123 @@
       border-radius: 8px;
     }
 
+    .liveBlink {
+      display: inline-block;
+      padding: 4px 8px;
+      font-weight: 900;
+      font-size: 9px;
+      color: white;
+      background: linear-gradient(45deg, #ff003c, #ff7700, #ff003c);
+      background-size: 200% 200%;
+      border-radius: 15px;
+      animation: gradientPulse 3s ease infinite, blinkOpacity 1.5s infinite;
+      box-shadow: 0 0 8px #ff003c;
+      user-select: none;
+      text-transform: uppercase;
+    }
+    @keyframes blinkOpacity {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    @keyframes gradientPulse {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Server List Modal */
     .server-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      z-index: 9999;
-      display: none;
-      justify-content: center;
-      align-items: center;
-    }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 9999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
 
-    .server-modal.active {
+.server-modal.active {
+  display: flex;
+}
+
+.server-content {
+  background: #222;
+  border: 1px solid #333;
+  padding: 15px;
+  width: 280px;
+  border-radius: 20px;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+    .server-header {
       display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 0px solid ;
     }
 
-    .server-content {
-      background: #222;
-      border: 1px solid #333;
-      padding: 15px;
-      width: 280px;
-      border-radius: 20px;
-      box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+    .server-title {
+    color: #0af;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+
+    .server-close {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 24px;
+      cursor: pointer;
     }
+    
+    .server-header-text {
+  color: #fff;
+  margin-bottom: 10px;
+  text-align: left;
+  font-weight: bold;
+  width: 100%;
+}
 
     .server-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    .server-item {
-      color: white;
-      padding: 12px;
-      text-align: left;
-      font-size: 15px;
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      text-decoration: none !important;
-    }
-    
-    .server-item:hover {
-      background: #333 !important;
-    }
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  box-shadow: none; /* শ্যাডো সরানো হলো */
+}
 
+    .server-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .server-item {
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-size: 15px;
+    /* Complete removal of inner box styling */
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+  }
+  
+  .server-item:hover {
+    background: #333 !important;
+  }
+
+    /* TV & FM separate section */
     #tv-section, #fm-section {
       padding: 10px;
       font-size: 16px;
@@ -653,28 +817,11 @@
 </head>
 <body>
 
-<!-- Permission Request Modal -->
-<div id="permissionModal" class="permission-modal">
-  <div class="permission-content">
-    <div class="permission-icon">🔔</div>
-    <div class="permission-title">Enable Match Notifications</div>
-    <div class="permission-text">
-      Get instant alerts for your favorite cricket matches:<br><br>
-      🕐 <strong>15 minutes</strong> before match starts<br>
-      ⏰ <strong>5 minutes</strong> before match starts<br>
-      🔴 When match goes <strong>LIVE</strong><br>
-      🏁 When match <strong>ends</strong>
-    </div>
-    <div class="permission-buttons">
-      <button class="permission-btn btn-allow" onclick="requestNotificationPermission()">
-        🔔 Allow Notifications
-      </button>
-      <button class="permission-btn btn-later" onclick="closePermissionModal()">
-        ⏭️ Maybe Later
-      </button>
-    </div>
-  </div>
-</div>
+<!-- Notification Status Bar -->
+<div id="notificationStatus" class="notification-status"></div>
+
+<!-- In-app Notification -->
+<div id="inAppNotification" class="in-app-notification"></div>
 
 <!-- Drawer / Side Menu -->
 <div id="drawer">
@@ -692,7 +839,7 @@
   <a href="#" onclick="showCategory('live'); toggleDrawer();">🏏 Live Matches</a>
   <a href="#" onclick="showCategory('tv'); toggleDrawer();">📺 Live TV</a>
   <a href="#" onclick="showCategory('fm'); toggleDrawer();">📻 FM Radio</a>
-  <a href="#" onclick="showNotificationSettings(); toggleDrawer();">🔔 Notifications</a>
+  <a href="#" onclick="toggleNotifications(); toggleDrawer();">🔔 Notifications</a>
 </div>
 <div id="drawerOverlay" onclick="toggleDrawer()"></div>
 
@@ -702,52 +849,18 @@
     <div class="logo">CricStreamZone</div>
   </div>
   <div class="search-container">
+    <button id="notificationBell" class="notification-bell" onclick="toggleNotifications()" title="Enable Notifications">🔔</button>
     <button class="search-icon" onclick="toggleSearch()">🔍</button>
   </div>
+
+  <!-- Search Overlay and Input -->
+  <div id="searchOverlay" class="search-overlay" onclick="closeSearch()"></div>
+  <input id="search" class="search-input" type="text" placeholder="Search matches, teams..." autocomplete="off" />
+  <button class="search-close" onclick="closeSearch()">✕</button>
 </nav>
 
 <div class="notice">
   <marquee scrollamount="3">Welcome to CricStreamZone! ⚠️ Install NS Player for smooth streaming 📲 Join our Telegram for updates!</marquee>
-</div>
-
-<!-- Notification Settings Panel -->
-<div id="notificationPanel" class="notification-panel" style="display:none;">
-  <div class="notification-header">
-    <div class="notification-title">
-      🔔 Push Notifications
-    </div>
-    <label class="notification-toggle">
-      <input type="checkbox" id="notificationToggle" onchange="toggleNotifications()">
-      <span class="toggle-slider"></span>
-    </label>
-  </div>
-  
-  <div class="notification-options">
-    <div class="notification-option">
-      <input type="checkbox" id="notify15min" checked onchange="updateNotificationSettings()">
-      <label for="notify15min">🕐 15 min before</label>
-    </div>
-    <div class="notification-option">
-      <input type="checkbox" id="notify5min" checked onchange="updateNotificationSettings()">
-      <label for="notify5min">⏰ 5 min before</label>
-    </div>
-    <div class="notification-option">
-      <input type="checkbox" id="notifyStart" checked onchange="updateNotificationSettings()">
-      <label for="notifyStart">🔴 Match starts</label>
-    </div>
-    <div class="notification-option">
-      <input type="checkbox" id="notifyEnd" checked onchange="updateNotificationSettings()">
-      <label for="notifyEnd">🏁 Match ends</label>
-    </div>
-  </div>
-  
-  <div id="notificationStatus" class="notification-status status-disabled">
-    🔕 Notifications are disabled
-  </div>
-
-  <button id="testNotificationBtn" class="test-notification-btn" onclick="sendTestNotification()" disabled>
-    🧪 Test Notification
-  </button>
 </div>
 
 <!-- Sub-tabs only visible in Live Category -->
@@ -784,13 +897,16 @@
 <!-- Bottom tab buttons -->
 <div class="bottom-tab-btns">
   <button id="bottomLive" class="active">
-    🏏 Live
+    <img src="https://i.postimg.cc/BvWg87Rd/videocam-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png" alt="Live Icon" style="vertical-align: middle; margin-right: 6px;" />
+    Live
   </button>
   <button id="bottomTV">
-    📺 TV
+    <img src="https://i.postimg.cc/K8JDvvxs/live-tv-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png" alt="TV Icon" style="vertical-align: middle; margin-right: 6px;" />
+    TV
   </button>
   <button id="bottomFM">
-    📻 FM
+    <img src="https://i.postimg.cc/YC472jwd/radio-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png" alt="FM Icon" style="vertical-align: middle; margin-right: 6px;" />
+    FM
   </button>
 </div>
 
@@ -809,392 +925,240 @@
 </div>
 
 <script>
-// 🔔 NOTIFICATION SYSTEM - Working Implementation
-class CricNotificationManager {
-  constructor() {
-    this.settings = {
-      enabled: false,
-      notify15min: true,
-      notify5min: true,
-      notifyStart: true,
-      notifyEnd: true
-    };
-    this.sentNotifications = new Set();
-    this.matches = [];
-    this.checkInterval = null;
-    this.init();
-  }
-
-  async init() {
-    console.log('🔔 Initializing Notification Manager...');
-    await this.loadSettings();
-    this.updateUI();
-    this.startNotificationChecker();
-    
-    // Show permission modal if needed
-    if (Notification.permission === 'default') {
-      setTimeout(() => {
-        document.getElementById('permissionModal').classList.add('active');
-      }, 3000);
-    }
-  }
-
-  loadSettings() {
-    try {
-      const saved = localStorage.getItem('cricNotificationSettings');
-      if (saved) {
-        this.settings = { ...this.settings, ...JSON.parse(saved) };
-      }
-      
-      const sentNotifs = localStorage.getItem('cricSentNotifications');
-      if (sentNotifs) {
-        this.sentNotifications = new Set(JSON.parse(sentNotifs));
-      }
-      
-      console.log('📋 Settings loaded:', this.settings);
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  }
-
-  saveSettings() {
-    try {
-      localStorage.setItem('cricNotificationSettings', JSON.stringify(this.settings));
-      localStorage.setItem('cricSentNotifications', JSON.stringify([...this.sentNotifications]));
-      console.log('💾 Settings saved');
-    } catch (error) {
-      console.error('Error saving settings:', error);
-    }
-  }
-
-  updateUI() {
-    document.getElementById('notificationToggle').checked = this.settings.enabled;
-    document.getElementById('notify15min').checked = this.settings.notify15min;
-    document.getElementById('notify5min').checked = this.settings.notify5min;
-    document.getElementById('notifyStart').checked = this.settings.notifyStart;
-    document.getElementById('notifyEnd').checked = this.settings.notifyEnd;
-    
-    this.updateStatus();
-  }
-
-  updateStatus() {
-    const statusEl = document.getElementById('notificationStatus');
-    const testBtn = document.getElementById('testNotificationBtn');
-    
-    if (Notification.permission === 'denied') {
-      statusEl.className = 'notification-status status-denied';
-      statusEl.innerHTML = '❌ Notifications blocked by browser<br><small>Enable in browser settings</small>';
-      testBtn.disabled = true;
-    } else if (this.settings.enabled && Notification.permission === 'granted') {
-      statusEl.className = 'notification-status status-enabled';
-      statusEl.innerHTML = '✅ Notifications are active<br><small>You will receive match alerts</small>';
-      testBtn.disabled = false;
-    } else {
-      statusEl.className = 'notification-status status-disabled';
-      statusEl.innerHTML = '🔕 Notifications are disabled<br><small>Turn on to receive match alerts</small>';
-      testBtn.disabled = true;
-    }
-  }
-
-  async requestPermission() {
-    try {
-      const permission = await Notification.requestPermission();
-      console.log('🔔 Permission result:', permission);
-      
-      if (permission === 'granted') {
-        this.settings.enabled = true;
-        this.saveSettings();
-        this.updateUI();
-        this.showNotification('🎉 Notifications Enabled!', 'You will now receive cricket match alerts');
-        return true;
-      } else {
-        this.updateUI();
-        return false;
-      }
-    } catch (error) {
-      console.error('Error requesting permission:', error);
-      return false;
-    }
-  }
-
-  showNotification(title, body, options = {}) {
-    if (!this.settings.enabled || Notification.permission !== 'granted') {
-      console.log('❌ Cannot show notification - not enabled or no permission');
-      return;
-    }
-
-    const defaultOptions = {
-      icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
-      badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
-      requireInteraction: false,
-      silent: false,
-      vibrate: [200, 100, 200],
-      tag: `cric-${Date.now()}`,
-      ...options
-    };
-
-    try {
-      const notification = new Notification(title, {
-        body: body,
-        ...defaultOptions
-      });
-
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-      };
-
-      // Auto close after 10 seconds
-      setTimeout(() => {
-        notification.close();
-      }, 10000);
-
-      console.log('✅ Notification shown:', title);
-      return notification;
-    } catch (error) {
-      console.error('Error showing notification:', error);
-    }
-  }
-
-  updateMatches(newMatches) {
-    this.matches = newMatches || [];
-    console.log(`📊 Updated matches for notifications: ${this.matches.length}`);
-  }
-
-  checkNotifications() {
-    if (!this.settings.enabled || !this.matches.length) {
-      return;
-    }
-
-    const now = new Date();
-    console.log(`🔍 Checking notifications at ${now.toLocaleTimeString()}`);
-
-    this.matches.forEach(match => {
-      const matchTime = new Date(match.MatchTime);
-      const duration = parseInt(match.MatchDuration) || 360;
-      const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
-      const matchId = match.Match.replace(/\s+/g, '-').toLowerCase();
-
-      // 15 minutes before
-      const time15min = new Date(matchTime.getTime() - 15 * 60 * 1000);
-      if (this.settings.notify15min && 
-          now >= time15min && 
-          now < matchTime && 
-          !this.sentNotifications.has(`${matchId}-15min`)) {
-        
-        this.showNotification(
-          '🏏 Match Starting Soon!',
-          `${match.Team1} vs ${match.Team2} starts in 15 minutes`,
-          {
-            tag: `${matchId}-15min`,
-            requireInteraction: true,
-            vibrate: [300, 100, 300]
-          }
-        );
-        
-        this.sentNotifications.add(`${matchId}-15min`);
-        console.log(`✅ Sent 15min notification: ${match.Match}`);
-      }
-
-      // 5 minutes before
-      const time5min = new Date(matchTime.getTime() - 5 * 60 * 1000);
-      if (this.settings.notify5min && 
-          now >= time5min && 
-          now < matchTime && 
-          !this.sentNotifications.has(`${matchId}-5min`)) {
-        
-        this.showNotification(
-          '⏰ Match Starting Very Soon!',
-          `${match.Team1} vs ${match.Team2} starts in 5 minutes\nGet ready to watch!`,
-          {
-            tag: `${matchId}-5min`,
-            requireInteraction: true,
-            vibrate: [500, 200, 500, 200, 500]
-          }
-        );
-        
-        this.sentNotifications.add(`${matchId}-5min`);
-        console.log(`✅ Sent 5min notification: ${match.Match}`);
-      }
-
-      // Match started
-      if (this.settings.notifyStart && 
-          now >= matchTime && 
-          now < new Date(matchTime.getTime() + 10 * 60 * 1000) && 
-          !this.sentNotifications.has(`${matchId}-start`)) {
-        
-        this.showNotification(
-          '🔴 LIVE NOW!',
-          `${match.Team1} vs ${match.Team2} is now LIVE!\nDon't miss the action!`,
-          {
-            tag: `${matchId}-start`,
-            requireInteraction: true,
-            vibrate: [1000, 300, 1000]
-          }
-        );
-        
-        this.sentNotifications.add(`${matchId}-start`);
-        console.log(`✅ Sent start notification: ${match.Match}`);
-      }
-
-      // Match ended
-      if (this.settings.notifyEnd && 
-          now >= endTime && 
-          now < new Date(endTime.getTime() + 30 * 60 * 1000) && 
-          !this.sentNotifications.has(`${matchId}-end`)) {
-        
-        this.showNotification(
-          '🏁 Match Finished',
-          `${match.Team1} vs ${match.Team2} has ended\nCheck the final scores!`,
-          {
-            tag: `${matchId}-end`,
-            requireInteraction: false
-          }
-        );
-        
-        this.sentNotifications.add(`${matchId}-end`);
-        console.log(`✅ Sent end notification: ${match.Match}`);
-      }
-    });
-
-    // Cleanup old notifications
-    this.cleanupOldNotifications(now);
-    this.saveSettings();
-  }
-
-  cleanupOldNotifications(now) {
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    let cleaned = 0;
-
-    this.matches.forEach(match => {
-      const matchTime = new Date(match.MatchTime);
-      if (matchTime < oneDayAgo) {
-        const matchId = match.Match.replace(/\s+/g, '-').toLowerCase();
-        ['15min', '5min', 'start', 'end'].forEach(type => {
-          const notifId = `${matchId}-${type}`;
-          if (this.sentNotifications.has(notifId)) {
-            this.sentNotifications.delete(notifId);
-            cleaned++;
-          }
-        });
-      }
-    });
-
-    if (cleaned > 0) {
-      console.log(`🧹 Cleaned ${cleaned} old notifications`);
-    }
-  }
-
-  startNotificationChecker() {
-    // Clear existing interval
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
-    }
-
-    // Check every minute
-    this.checkInterval = setInterval(() => {
-      this.checkNotifications();
-    }, 60000);
-
-    console.log('⏰ Notification checker started');
-  }
-
-  toggleNotifications(enabled) {
-    this.settings.enabled = enabled;
-    this.saveSettings();
-    this.updateUI();
-    
-    if (enabled && Notification.permission === 'granted') {
-      this.showNotification('🔔 Notifications Enabled', 'You will receive match alerts');
-    }
-  }
-
-  updateSettings(newSettings) {
-    this.settings = { ...this.settings, ...newSettings };
-    this.saveSettings();
-    console.log('🔧 Settings updated:', this.settings);
-  }
-
-  testNotification() {
-    this.showNotification(
-      '🧪 Test Notification',
-      'CricStreamZone notifications are working perfectly! 🎉\nYou will receive alerts for upcoming matches.',
-      {
-        tag: 'test-notification',
-        requireInteraction: false,
-        vibrate: [200, 100, 200, 100, 200]
-      }
-    );
-  }
+// Notification Functions
+function showNotificationStatus(message, type) {
+  const statusBar = document.getElementById('notificationStatus');
+  statusBar.textContent = message;
+  statusBar.className = `notification-status ${type} show`;
+  
+  setTimeout(() => {
+    statusBar.classList.remove('show');
+  }, 4000);
 }
 
-// Initialize notification manager
-const notificationManager = new CricNotificationManager();
+function showInAppNotification(title, body) {
+  const notification = document.getElementById('inAppNotification');
+  notification.innerHTML = `
+    <div style="font-weight: bold; margin-bottom: 5px;">${title}</div>
+    <div style="font-size: 13px; color: #ccc;">${body}</div>
+  `;
+  notification.classList.add('show');
+  
+  setTimeout(() => {
+    notification.classList.remove('show');
+  }, 5000);
+}
 
-// Global notification functions
-async function requestNotificationPermission() {
-  const success = await notificationManager.requestPermission();
-  if (success) {
-    closePermissionModal();
+function updateNotificationBell() {
+  const bell = document.getElementById('notificationBell');
+  const permission = Notification.permission;
+  
+  if (permission === 'granted') {
+    bell.classList.add('enabled');
+    bell.classList.remove('disabled');
+    bell.title = 'Notifications enabled';
+  } else {
+    bell.classList.add('disabled');
+    bell.classList.remove('enabled');
+    bell.title = 'Click to enable notifications';
   }
 }
 
 function toggleNotifications() {
-  const toggle = document.getElementById('notificationToggle');
-  
-  if (toggle.checked && Notification.permission !== 'granted') {
-    document.getElementById('permissionModal').classList.add('active');
-    toggle.checked = false;
-    return;
+  if (Notification.permission === 'granted') {
+    showNotificationStatus('🔔 Notifications are already enabled!', 'success');
+  } else if (Notification.permission === 'denied') {
+    showNotificationStatus('🔕 Please enable notifications in browser settings.', 'warning');
+  } else {
+    window.initializeNotifications();
   }
-  
-  notificationManager.toggleNotifications(toggle.checked);
 }
 
-function updateNotificationSettings() {
-  const settings = {
-    notify15min: document.getElementById('notify15min').checked,
-    notify5min: document.getElementById('notify5min').checked,
-    notifyStart: document.getElementById('notifyStart').checked,
-    notifyEnd: document.getElementById('notifyEnd').checked
-  };
-  
-  notificationManager.updateSettings(settings);
+// Notification Scheduler
+class NotificationScheduler {
+  constructor() {
+    this.scheduledNotifications = new Map();
+    this.checkInterval = null;
+  }
+
+  scheduleMatchNotifications(matches) {
+    // Clear existing schedules
+    this.clearAllSchedules();
+    
+    const now = new Date();
+    
+    matches.forEach(match => {
+      const matchTime = new Date(match.MatchTime);
+      const duration = parseInt(match.MatchDuration) || 360;
+      const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
+      
+      // Skip if match has already ended
+      if (now >= endTime) return;
+      
+      const matchId = `${match.Team1}_${match.Team2}_${matchTime.getTime()}`;
+      
+      // Schedule 15 minutes before
+      const notify15Min = new Date(matchTime.getTime() - (15 * 60 * 1000));
+      if (now < notify15Min) {
+        this.scheduleNotification(matchId + '_15min', notify15Min, {
+          title: '🏏 Match Starting Soon!',
+          body: `${match.Team1} vs ${match.Team2} starts in 15 minutes`,
+          icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+          badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+          tag: matchId + '_15min',
+          data: { matchId, type: '15min' }
+        });
+      }
+      
+      // Schedule 5 minutes before
+      const notify5Min = new Date(matchTime.getTime() - (5 * 60 * 1000));
+      if (now < notify5Min) {
+        this.scheduleNotification(matchId + '_5min', notify5Min, {
+          title: '⚡ Match Starting Very Soon!',
+          body: `${match.Team1} vs ${match.Team2} starts in 5 minutes! Get ready!`,
+          icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+          badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+          tag: matchId + '_5min',
+          data: { matchId, type: '5min' }
+        });
+      }
+      
+      // Schedule when match goes live
+      if (now < matchTime) {
+        this.scheduleNotification(matchId + '_live', matchTime, {
+          title: '🔴 LIVE NOW!',
+          body: `${match.Team1} vs ${match.Team2} is now LIVE! Watch now!`,
+          icon: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+          badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
+          tag: matchId + '_live',
+          data: { matchId, type: 'live' }
+        });
+      }
+    });
+    
+    this.startChecking();
+  }
+
+  scheduleNotification(id, time, options) {
+    this.scheduledNotifications.set(id, {
+      time: time,
+      options: options,
+      sent: false
+    });
+  }
+
+  startChecking() {
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+    }
+    
+    this.checkInterval = setInterval(() => {
+      this.checkAndSendNotifications();
+    }, 30000); // Check every 30 seconds
+  }
+
+  checkAndSendNotifications() {
+    const now = new Date();
+    
+    this.scheduledNotifications.forEach((notification, id) => {
+      if (!notification.sent && now >= notification.time) {
+        this.sendNotification(notification.options);
+        notification.sent = true;
+        
+        // Remove sent notification after 1 hour
+        setTimeout(() => {
+          this.scheduledNotifications.delete(id);
+        }, 60 * 60 * 1000);
+      }
+    });
+  }
+
+  sendNotification(options) {
+    if (Notification.permission === 'granted') {
+      // Try to use Service Worker notification first
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          payload: options
+        });
+      } else {
+        // Fallback to regular notification
+        new Notification(options.title, options);
+      }
+      
+      // Also show in-app notification
+      showInAppNotification(options.title, options.body);
+    }
+  }
+
+  clearAllSchedules() {
+    this.scheduledNotifications.clear();
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+      this.checkInterval = null;
+    }
+  }
 }
 
-function closePermissionModal() {
-  document.getElementById('permissionModal').classList.remove('active');
-}
+// Initialize notification scheduler
+const notificationScheduler = new NotificationScheduler();
 
-function sendTestNotification() {
-  notificationManager.testNotification();
-}
-
-function showNotificationSettings() {
-  const panel = document.getElementById('notificationPanel');
-  
-  // Hide all sections
-  document.getElementById('subTabs').style.display = 'none';
-  document.getElementById('match-list').style.display = 'none';
-  document.getElementById('tv-section').style.display = 'none';
-  document.getElementById('fm-section').style.display = 'none';
-  document.getElementById('notificationPanel').style.display = 'none';
-  
-  // Show notification panel
-  panel.style.display = 'block';
-  notificationManager.updateUI();
-}
-
-// Search functionality
+// Search functionality - Updated
 function toggleSearch() {
-  // Search implementation (keeping existing code)
-  console.log('Search toggled');
+  const searchInput = document.getElementById('search');
+  const searchClose = document.querySelector('.search-close');
+  const searchOverlay = document.getElementById('searchOverlay');
+
+  if (!searchInput.classList.contains('active')) {
+    searchOverlay.classList.add('active');
+    searchInput.classList.add('active');
+    searchClose.classList.add('active');
+
+    setTimeout(() => {
+      searchInput.focus();
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        searchInput.click();
+      }
+    }, 350);
+  } else {
+    closeSearch();
+  }
 }
 
 function closeSearch() {
-  // Search close implementation (keeping existing code)
-  console.log('Search closed');
+  const searchInput = document.getElementById('search');
+  const searchClose = document.querySelector('.search-close');
+  const searchOverlay = document.getElementById('searchOverlay');
+
+  searchOverlay.classList.remove('active');
+  searchInput.classList.remove('active');
+  searchClose.classList.remove('active');
+  searchInput.value = '';
+  searchInput.blur();
+
+  if(document.getElementById('subTabs').style.display === 'block'){  
+    renderMatches(currentSubTab);  
+  }
 }
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('search').classList.contains('active')) {
+    closeSearch();
+  }
+});
+
+document.getElementById('search').addEventListener('input', (e) => {  
+  if(document.getElementById('subTabs').style.display === 'block'){  
+    renderMatches(currentSubTab);  
+  }
+});
+
+document.getElementById('search').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    this.blur();
+  }
+});
 
 // Drawer toggle function
 function toggleDrawer() {  
@@ -1244,10 +1208,20 @@ window.addEventListener('load', () => {
     setTimeout(() => {  
       document.getElementById('telegramPopup').style.display = 'block';  
     }, 5000);
-  }  
+  }
+  
+  // Initialize notifications on load
+  updateNotificationBell();
+  
+  // Auto-enable notifications after 10 seconds if not already enabled
+  setTimeout(() => {
+    if (Notification.permission === 'default') {
+      showNotificationStatus('🔔 Enable notifications for match alerts!', 'warning');
+    }
+  }, 10000);
 });
 
-// API url
+// API url - আপনার নতুন Google Apps Script URL দিন
 const matchesApi = "https://script.google.com/macros/s/AKfycbxZfHUGsH19x3hZp5eeo3tEMJuQxvOPHpyS_LAqow4rlBciyrhP0NdaI2NzeZiyA5SF9A/exec";  
 
 let matches = [];  
@@ -1262,12 +1236,14 @@ function clearIntervals() {
 function getNow() { return new Date(); }  
 function getCountdown(t) { return Math.max(0, new Date(t) - getNow()); }  
 
+// নতুন ফরম্যাট ফাংশন - স্মার্ট টাইমার (সেকেন্ড -> মিনিট -> ঘন্টা)
 function formatTime(ms) {
   let totalSeconds = Math.floor(ms / 1000);
   let hours = Math.floor(totalSeconds / 3600);
   let minutes = Math.floor((totalSeconds % 3600) / 60);
   let seconds = totalSeconds % 60;
   
+  // স্মার্ট ডিসপ্লে: শুধু সেকেন্ড -> মিনিট:সেকেন্ড -> ঘন্টা:মিনিট:সেকেন্ড
   if (hours > 0) {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   } else if (minutes > 0) {
@@ -1285,6 +1261,7 @@ function formatCountUp(ms) {
   return formatTime(ms);
 }
 
+// দিনের নাম বের করার ফাংশন
 function getDayName(date) {
   const today = new Date();
   const tomorrow = new Date(today);
@@ -1300,9 +1277,10 @@ function getDayName(date) {
   return days[targetDate.getDay()];
 }
 
+// Match status checker with duration support
 function getMatchStatus(matchTime, matchDuration, now) {
   const startTime = new Date(matchTime);
-  const endTime = new Date(startTime.getTime() + (matchDuration * 60 * 1000));
+  const endTime = new Date(startTime.getTime() + (matchDuration * 60 * 1000)); // Convert minutes to milliseconds
   const oneHourBefore = new Date(startTime.getTime() - 60 * 60 * 1000);
   
   if (now >= endTime) {
@@ -1324,11 +1302,11 @@ function renderMatches(type = 'live') {
   
   const list = document.getElementById('match-list');  
   list.innerHTML = "";  
-  const filter = document.getElementById('search') ? document.getElementById('search').value.toLowerCase() : '';  
+  const filter = document.getElementById('search').value.toLowerCase();  
   
   let filteredMatches = matches.filter(m => {  
     const ct = new Date(m.MatchTime);
-    const duration = parseInt(m.MatchDuration) || 360;
+    const duration = parseInt(m.MatchDuration) || 360; // Default 6 hours
     const status = getMatchStatus(m.MatchTime, duration, now);
     
     if (type === 'live' && !(status === 'live' || status === 'coming_soon')) return false;
@@ -1376,8 +1354,8 @@ function renderMatches(type = 'live') {
         justify-content: center;  
         gap: 14px;  
       ">  
-        <span style="font-size: 2.5rem;">📱</span>  
-        <span>${emojiMessage}</span>  
+        <span style="font-size: 2.5rem;">${emojiMessage.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})+/u)[0]}</span>  
+        <span>${emojiMessage.replace(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})+\s*/, '')}</span>  
       </div>  
     `;  
     return;  
@@ -1404,14 +1382,15 @@ function renderMatches(type = 'live') {
     let statusContent = '';
     let leftContent = '';
     
+    // Match header without logo - শুধু টেক্সট
     const matchHeaderContent = m.Match;
     
     if (status === 'live') {
       leftContent = `<div class="live-timer" id="cd${type}${i}"></div>`;
-      statusContent = `<div class="live-indicator"><div style="color: #ff0000; font-weight: bold; animation: blink 1s infinite;">🔴 LIVE</div></div>`;
+      statusContent = `<div class="live-indicator"><div id="liveAnim${i}" style="width: 60px; height: 60px;"></div></div>`;
     } else if (status === 'coming_soon' && type === 'live') {
       leftContent = `<div class="live-timer" id="cd${type}${i}"></div>`;
-      statusContent = `<div style="color: #ffa500; font-weight: bold;">⏳ Soon</div>`;
+      statusContent = `<div id="comingSoonAnim${i}" style="width: 60px; height: 60px;"></div>`;
     } else if (status === 'finished') {
       leftContent = `<div class="match-time-date">${dateStr} ${timeStr}</div>`;
       statusContent = `<div class="finished-status">Match Ended</div>`;
@@ -1455,30 +1434,86 @@ function renderMatches(type = 'live') {
     
     list.appendChild(div);  
     
+    // Lottie animations for live matches
+    if (status === 'live') {  
+      setTimeout(() => {  
+        const animContainer = document.getElementById('liveAnim' + i);
+        if (animContainer && !animContainer.hasAttribute('data-loaded')) {
+          animContainer.setAttribute('data-loaded', 'true');
+          bodymovin.loadAnimation({  
+            container: animContainer,  
+            renderer: 'svg',  
+            loop: true,  
+            autoplay: true,  
+            path: 'https://raw.githubusercontent.com/Hasanmahmud000/HasanTv/refs/heads/main/live-icon.json'  
+          });  
+        }
+      }, 0);  
+    }  
+
+    // Coming Soon animation
+    if (status === 'coming_soon' && type === 'live') {  
+      setTimeout(() => {  
+        const animContainer = document.getElementById('comingSoonAnim' + i);
+        if (animContainer && !animContainer.hasAttribute('data-loaded')) {
+          animContainer.setAttribute('data-loaded', 'true');
+          bodymovin.loadAnimation({  
+            container: animContainer,  
+            renderer: 'svg',  
+            loop: true,  
+            autoplay: true,  
+            path: 'https://raw.githubusercontent.com/Hasanmahmud000/Ccvv/refs/heads/main/live-icon.json'  
+          });  
+        }
+      }, 0);  
+    }
+    
     // Timer intervals
-    if (status === 'live' || status === 'coming_soon') {  
-      intervals.push(setInterval(() => {  
-        const now = getNow();
-        const matchTime = new Date(m.MatchTime);
-        const cdEl = div.querySelector(`#cd${type}${i}`);  
+if (status === 'live' || status === 'coming_soon') {  
+  intervals.push(setInterval(() => {  
+    const now = getNow();
+    const matchTime = new Date(m.MatchTime);
+    const cdEl = div.querySelector(`#cd${type}${i}`);  
+    
+    if (cdEl) {  
+      const diffLive = now - matchTime;  
+      cdEl.innerText = formatCountUp(Math.abs(diffLive));  
+    }
+    
+    // Check if match transitions from coming soon to live
+    if (now >= matchTime && status === 'coming_soon') {
+      const comingSoonContainer = div.querySelector(`#comingSoonAnim${i}`);
+      
+      if (comingSoonContainer) {
+        comingSoonContainer.innerHTML = '';
+        comingSoonContainer.id = `liveAnim${i}`;
         
-        if (cdEl) {  
-          const diffLive = now - matchTime;  
-          cdEl.innerText = formatCountUp(Math.abs(diffLive));  
-        }
+        bodymovin.loadAnimation({  
+          container: comingSoonContainer,  
+          renderer: 'svg',  
+          loop: true,  
+          autoplay: true,  
+          path: 'https://raw.githubusercontent.com/Hasanmahmud000/HasanTv/refs/heads/main/live-icon.json'  
+        });
         
-        // Check if match has ended
-        const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
-        if (now >= endTime && (status === 'live' || status === 'coming_soon')) {
-          setTimeout(() => {
-            showCategory('live');
-            currentSubTab = 'finished';
-            setActiveSubTab('finished');
-            renderMatches('finished');
-          }, 1000);
-        }
-      }, 1000));  
-    } else if (type === 'today') {  
+        comingSoonContainer.style.transition = 'all 0.5s ease';
+        comingSoonContainer.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          comingSoonContainer.style.transform = 'scale(1)';
+        }, 500);
+      }
+    }
+    
+    // Check if match has ended
+const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
+if (now >= endTime && (status === 'live' || status === 'coming_soon')) {
+  // Automatically switch to Finished tab
+  setTimeout(() => {
+    showCategory('finished'); // Automatically switch to Finished tab
+  }, 1000);
+}
+  }, 1000));  
+} else if (type === 'today') {  
       intervals.push(setInterval(() => {  
         const cdEl = div.querySelector(`#cd${type}${i}`);  
         if (cdEl) {  
@@ -1498,11 +1533,13 @@ function showCategory(category) {
 
   document.getElementById('bottom' + category.charAt(0).toUpperCase() + category.slice(1)).classList.add('active');  
 
+  document.getElementById('search').value = '';
+  closeSearch();
+
   document.getElementById('subTabs').style.display = 'none';  
   document.getElementById('match-list').style.display = 'none';  
   document.getElementById('tv-section').style.display = 'none';  
   document.getElementById('fm-section').style.display = 'none';  
-  document.getElementById('notificationPanel').style.display = 'none';
 
   if(category === 'live') {  
     document.getElementById('subTabs').style.display = 'block';  
@@ -1556,14 +1593,17 @@ document.getElementById('subFinished').addEventListener('click', () => {
   renderMatches(currentSubTab);  
 });
 
-// Initial data load
+document.getElementById('search').addEventListener('input', () => {  
+  if(document.getElementById('subTabs').style.display === 'block'){  
+    renderMatches(currentSubTab);  
+  }  
+});  
+
+// Initial data load to show Live Category  
 fetch(matchesApi)  
 .then(res => res.json())  
 .then(data => {  
   matches = data.matches || [];  
-  
-  // Update notification manager with matches
-  notificationManager.updateMatches(matches);
 
   const now = new Date();  
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1592,10 +1632,13 @@ fetch(matchesApi)
   });
 
   // Update tab counts
-  document.getElementById("countLive").innerText = `(${liveCount})`;  
-  document.getElementById("countToday").innerText = `(${todayCount})`;  
-  document.getElementById("countUpcoming").innerText = `(${upcomingCount})`;
-  document.getElementById("countFinished").innerText = `(${finishedCount})`;
+document.getElementById("countLive").innerText = `(${liveCount})`;  
+document.getElementById("countToday").innerText = `(${todayCount})`;  
+document.getElementById("countUpcoming").innerText = `(${upcomingCount})`;
+document.getElementById("countFinished").innerText = `(${finishedCount})`;
+
+  // Schedule notifications for all matches
+  notificationScheduler.scheduleMatchNotifications(matches);
 
   // Smart tab selection
   if (liveCount > 0) {
@@ -1623,76 +1666,275 @@ fetch(matchesApi)
   document.getElementById('match-list').innerHTML = '<p style="text-align:center; color:#f00;">Failed to load match data.</p>';  
 });
 
-// Auto-refresh matches every 30 seconds
-setInterval(() => {
-  fetch(matchesApi)
-    .then(res => res.json())
-    .then(data => {
-      const oldMatchesLength = matches.length;
-      matches = data.matches || [];
-      
-      // Update notification manager
-      notificationManager.updateMatches(matches);
-      
-      if (matches.length !== oldMatchesLength) {
-        const now = new Date();
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-        
-        let liveCount = 0;
-        let todayCount = 0;
-        let upcomingCount = 0;
-        let finishedCount = 0;
+// Service Worker for PWA and Notifications
+if ('serviceWorker' in navigator) {  
+  navigator.serviceWorker.register('sw.js').then(registration => {  
 
-        matches.forEach(m => {
-          const duration = parseInt(m.MatchDuration) || 360;
-          const status = getMatchStatus(m.MatchTime, duration, now);
-          const ct = new Date(m.MatchTime);
-          
-          if (status === 'live' || status === 'coming_soon') {
-            liveCount++;
-          } else if (status === 'finished') {
-            finishedCount++;
-          } else if (ct >= todayStart && ct < todayEnd) {
-            todayCount++;
-          } else if (ct > todayEnd) {
-            upcomingCount++;
-          }
-        });
-        
-        document.getElementById("countLive").innerText = `(${liveCount})`;
-        document.getElementById("countToday").innerText = `(${todayCount})`;
-        document.getElementById("countUpcoming").innerText = `(${upcomingCount})`;
-        document.getElementById("countFinished").innerText = `(${finishedCount})`;
-        
-        if (document.getElementById('subTabs').style.display === 'block') {
+    function showUpdatePopup() {  
+      const box = document.createElement('div');  
+      box.innerHTML = "🆕 New version available — <b>Tap to update</b>";  
+      box.style.cssText = `  
+        position: fixed;  
+        bottom: 20px;  
+        left: 50%;  
+        transform: translateX(-50%);  
+        background: #0af;  
+        color: white;  
+        padding: 12px 16px;  
+        border-radius: 30px;  
+        font-weight: bold;  
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);  
+        z-index: 9999;  
+        cursor: pointer;  
+      `;  
+      box.onclick = () => {  
+        box.remove();  
+        if (registration.waiting) {  
+          registration.waiting.postMessage({ action: "skipWaiting" });  
+        }  
+      };  
+      document.body.appendChild(box);  
+    }  
+
+    function listenForWaitingSW(reg) {  
+      if (!reg) return;  
+      if (reg.waiting) return showUpdatePopup();  
+
+      if (reg.installing) {  
+        reg.installing.addEventListener("statechange", function () {  
+          if (this.state === "installed" && navigator.serviceWorker.controller) {  
+            showUpdatePopup();  
+          }  
+        });  
+      }  
+
+      reg.addEventListener("updatefound", () => {  
+        if (reg.installing) {  
+          reg.installing.addEventListener("statechange", function () {  
+            if (this.state === "installed" && navigator.serviceWorker.controller) {  
+              showUpdatePopup();  
+            }  
+          });  
+        }  
+      });  
+    }  
+
+    listenForWaitingSW(registration);  
+  });  
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {  
+    window.location.reload();  
+  });  
+}  
+
+// Touch/Swipe functionality for sub-tabs
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
+
+function handleSwipe() {
+  const deltaX = touchEndX - touchStartX;
+  const deltaY = touchEndY - touchStartY;
+  
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+    if (document.getElementById('subTabs').style.display === 'block') {
+      const subTabs = ['live', 'today', 'upcoming', 'finished'];
+      const currentIndex = subTabs.indexOf(currentSubTab);
+      
+      if (deltaX > 0) {
+        if (currentIndex > 0) {
+          const newTab = subTabs[currentIndex - 1];
+          currentSubTab = newTab;
+          setActiveSubTab(currentSubTab);
+          renderMatches(currentSubTab);
+        }
+      } else {
+        if (currentIndex < subTabs.length - 1) {
+          const newTab = subTabs[currentIndex + 1];
+          currentSubTab = newTab;
+          setActiveSubTab(currentSubTab);
           renderMatches(currentSubTab);
         }
       }
-    })
-    .catch(e => console.error('Auto-refresh error:', e));
-}, 30000);
-
-// Service Worker Registration
-if ('serviceWorker' in navigator) {  
-  navigator.serviceWorker.register('sw.js').then(registration => {  
-    console.log('✅ Service Worker registered successfully');
-  }).catch(error => {
-    console.log('❌ Service Worker registration failed:', error);
-  });  
+    }
+  }
 }
 
-// Add CSS for blinking animation
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0.3; }
-  }
-`;
-document.head.appendChild(style);
+document.addEventListener('touchstart', function(e) {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
 
-console.log('🏏 CricStreamZone loaded with working notifications!');
+document.addEventListener('touchend', function(e) {
+  touchEndX = e.changedTouches[0].screenX;
+  touchEndY = e.changedTouches[0].screenY;
+  handleSwipe();
+}, { passive: true });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (document.activeElement !== document.getElementById('search')) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      if (document.getElementById('subTabs').style.display === 'block') {
+        const subTabs = ['live', 'today', 'upcoming', 'finished'];
+        const currentIndex = subTabs.indexOf(currentSubTab);
+        
+        if (e.key === 'ArrowLeft' && currentIndex > 0) {
+          const newTab = subTabs[currentIndex - 1];
+          currentSubTab = newTab;
+          setActiveSubTab(currentSubTab);
+          renderMatches(currentSubTab);
+        } else if (e.key === 'ArrowRight' && currentIndex < subTabs.length - 1) {
+          const newTab = subTabs[currentIndex + 1];
+          currentSubTab = newTab;
+          setActiveSubTab(currentSubTab);
+          renderMatches(currentSubTab);
+        }
+      }
+    }
+    
+    if (e.key === '/' || (e.ctrlKey && e.key === 'f')) {
+      e.preventDefault();
+      toggleSearch();
+    }
+    
+    if (e.key === 'Escape') {
+      if (document.getElementById('search').classList.contains('active')) {
+        toggleSearch();
+      } else if (document.getElementById('serverModal').classList.contains('active')) {
+        closeServerModal();
+      }
+    }
+  }
+});
+
+// Auto-refresh matches every 30 seconds
+setInterval(() => {
+  if (document.getElementById('subTabs').style.display === 'block') {
+    fetch(matchesApi)
+      .then(res => res.json())
+      .then(data => {
+        const oldMatchesLength = matches.length;
+        matches = data.matches || [];
+        
+        if (matches.length !== oldMatchesLength) {
+          const now = new Date();
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+          
+          let liveCount = 0;
+          let todayCount = 0;
+          let upcomingCount = 0;
+          let finishedCount = 0;
+
+          matches.forEach(m => {
+            const duration = parseInt(m.MatchDuration) || 360;
+            const status = getMatchStatus(m.MatchTime, duration, now);
+            const ct = new Date(m.MatchTime);
+            
+            if (status === 'live' || status === 'coming_soon') {
+              liveCount++;
+            } else if (status === 'finished') {
+              finishedCount++;
+            } else if (ct >= todayStart && ct < todayEnd) {
+              todayCount++;
+            } else if (ct > todayEnd) {
+              upcomingCount++;
+            }
+          });
+          
+          document.getElementById("countLive").innerText = `(${liveCount})`;
+          document.getElementById("countToday").innerText = `(${todayCount})`;
+          document.getElementById("countUpcoming").innerText = `(${upcomingCount})`;
+          document.getElementById("countFinished").innerText = `(${finishedCount})`;
+          
+          // Re-schedule notifications with updated matches
+          notificationScheduler.scheduleMatchNotifications(matches);
+          
+          renderMatches(currentSubTab);
+        }
+      })
+      .catch(e => console.error('Auto-refresh error:', e));
+  }
+}, 30000);
+
+// Prevent context menu on match cards
+document.addEventListener('contextmenu', function(e) {
+  if (e.target.closest('.match')) {
+    e.preventDefault();
+  }
+});
+
+// Add loading animation
+function showLoading() {
+  document.getElementById('match-list').innerHTML = `
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+      flex-direction: column;
+      gap: 15px;
+    ">
+      <div style="
+        width: 40px;
+        height: 40px;
+        border: 4px solid #333;
+        border-top: 4px solid #0af;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      "></div>
+      <div style="color: #ccc; font-size: 14px;">Loading matches...</div>
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `;
+}
+
+// Show loading initially
+showLoading();
+
+// Add smooth scroll behavior
+document.documentElement.style.scrollBehavior = 'smooth';
+
+// Network status monitoring
+function updateNetworkStatus() {
+  if ('navigator' in window && 'onLine' in navigator) {
+    if (!navigator.onLine) {
+      const offlineNotice = document.createElement('div');
+      offlineNotice.id = 'offline-notice';
+      offlineNotice.innerHTML = '📡 You are offline. Some features may not work.';
+      offlineNotice.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #ff6b35;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        z-index: 9999;
+        font-size: 14px;
+        font-weight: 600;
+      `;
+      document.body.appendChild(offlineNotice);
+    } else {
+      const existingNotice = document.getElementById('offline-notice');
+      if (existingNotice) {
+        existingNotice.remove();
+      }
+    }
+  }
+}
+
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+updateNetworkStatus();
 
 </script>
 
