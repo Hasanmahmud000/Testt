@@ -1,7 +1,7 @@
 {
-  "name": "CricStreamZone - Live Cricket with Notifications",
+  "name": "CricStreamZone - Live Cricket Streaming",
   "short_name": "CricStreamZone",
-  "description": "Watch live cricket matches with instant push notifications",
+  "description": "Watch live cricket matches, get instant notifications, and never miss a game!",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#111111",
@@ -9,7 +9,7 @@
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["sports", "entertainment", "news"],
+  "categories": ["sports", "entertainment"],
   "icons": [
     {
       "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
@@ -22,30 +22,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
-      "sizes": "48x48",
-      "type": "image/png",
-      "purpose": "any"
     }
   ],
   "screenshots": [
@@ -53,15 +29,7 @@
       "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "form_factor": "wide",
-      "label": "Live Cricket Matches"
-    },
-    {
-      "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile View"
+      "form_factor": "wide"
     }
   ],
   "shortcuts": [
@@ -78,22 +46,10 @@
       ]
     },
     {
-      "name": "Notifications",
-      "short_name": "Alerts",
-      "description": "Manage match notifications",
-      "url": "/?tab=notifications",
-      "icons": [
-        {
-          "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Today's Matches",
-      "short_name": "Today",
-      "description": "View today's cricket schedule",
-      "url": "/?tab=today",
+      "name": "Upcoming Matches",
+      "short_name": "Upcoming",
+      "description": "View upcoming cricket matches",
+      "url": "/?tab=upcoming",
       "icons": [
         {
           "src": "https://i.postimg.cc/3rPWWckN/icon-192.png",
@@ -102,7 +58,6 @@
       ]
     }
   ],
-  "prefer_related_applications": false,
   "related_applications": [
     {
       "platform": "play",
@@ -110,19 +65,11 @@
       "id": "com.genuine.leone"
     }
   ],
-  "protocol_handlers": [
-    {
-      "protocol": "web+cricstream",
-      "url": "/?match=%s"
-    }
-  ],
-  "share_target": {
-    "action": "/",
-    "method": "GET",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
   }
 }
