@@ -1,3 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CricStreamZone - Live Matches & Upcoming</title>
+  
+  <!-- OneSignal SDK -->
+  <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js"></script>
+  <style>
+    /* Existing styles... */
+
+    .menu-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #fff;
+      cursor: pointer;
+      padding: 5px;
+      margin-left: 0px;
+      margin-right: 20px;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 30px;
+      background-color: #222;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.7);
+      border-radius: 8px;
+      z-index: 1001;
+      overflow: hidden;
+      min-width: 180px;
+    }
+
+    .dropdown-content a {
+      color: #fff;
+      padding: 10px 16px;
+      display: block;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #0af;
+    }
+
+    .menu-dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    /* Drawer (Side menu) */
+    #drawer {
+      position: fixed;
+      top: 0;
+      left: -600px;
+      width: 280px;
+      height: 100%;
+      background: #111;
+      z-index: 2000;
+      padding: 20px;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.7);
+      transition: left 0.3s ease;
+    }
+    #drawer.open {
+      left: 0;
+    }
+    #drawer h3 {
+      color: #0af;
+      margin-bottom: 20px;
+    }
+    #drawer a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+      font-weight: 600;
+      background: #222;
+    }
+    #drawer a:hover {
+      background: #0af;
+      color: #fff;
+    }
+    #drawerClose {
+      background: none;
+      color: #ccc;
+      border: none;
+      font-size: 22px;
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+    }
+
+    /* Backdrop overlay */
+    #drawerOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: #00000080;
+      z-index: 1500;
+    }
+    #drawerOverlay.show {
+      display: block;
+    }
+
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    nav {
+      background: #222;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: #0ff;
+    }
+
+    /* Search Container - Mobile Fixed */
+    .search-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      background: none;
+      border: none;
+      color: #0af;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 8px;
+      transition: color 0.3s ease;
+      min-width: 40px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .search-icon:hover {
+      color: #0ff;
+    }
+
+    .search-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1500;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .search-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .search-input {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: #222;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 16px;
+      padding: 0 60px 0 20px;
+      z-index: 1600;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
+      border-bottom: 2px solid #0af;
+      box-sizing: border-box;
+    }
+
+    .search-input.active {
+      transform: translateY(0);
+    }
+
+    .search-input::placeholder {
+      color: #888;
+    }
+
+    .search-close {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #0af;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 1700;
+      opacity: 0;
+      transform: translateY(-100%);
+      transition: all 0.3s ease;
+      min-width: 30px;
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-close.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Mobile specific fixes */
+    @media (max-width: 768px) {
+      .search-icon {
+        font-size: 18px;
+        padding: 10px;
+      }
+
+      .search-input {
+        font-size: 16px;
+        -webkit-appearance: none;
+        -webkit-border-radius: 0;
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-bottom: 2px solid #0ff;
+      }
+    }
+
+    /* Prevent zoom on iOS */
+    @media screen and (max-width: 768px) {
+      .search-input {
+        font-size: 16px !important;
+        transform-origin: left top;
+      }
+    }
+
+    .notice {
+      background: #000;
+      color: #fff;
+      padding: 05px 0;
+      font-weight: bold;
+      text-align: center;
+      border-top: 1px solid #fff;
+      border-bottom: 1px solid #fff;
+      border-radius: 8px;
+      margin: 0;
+      width: 100%;
+    }
+
+    .notice marquee {
+      color: #fff;
+    }
+
+    .server-content {
+  background: #222;
+  border-radius: 50px;
+  padding: 16px;
+  max-width: 80%;
+  width: 280px;
+  max-height: 80%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  /* স্ক্রলবার সম্পূর্ণ লুকানো */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Webkit browsers এর জন্য স্ক্রলবার লুকানো */
+.server-content::-webkit-scrollbar {
+  display: none;
+}
+
+
+    .server-list {
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+    }
+
+    .server-item {
+      color: #fff;
+      padding: 10px 0;
+      text-align: center;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: normal;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 5px;
+      width: 100%;
+      background: none;
+      border: none;
+    }
+
+    .server-item:hover {
+      color: #0af;
+    }
+
+ /* Modified sub-tab styles */
+.sub-tab-btns {
+  display: flex;
+  justify-content: space-around; /* Distribute space evenly */
+  padding: 10px;
+  background: #222;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  overflow-x: auto; /* Allow horizontal scrolling if needed */
+}
+
+.sub-tab-btns button {
+  flex: 1; /* Equal width for buttons */
+  min-width: 85.5px; /* Minimum width for buttons */
+  max-width: 120px; /* Maximum width for buttons */
+  padding: 8px 5px;
+  border: none;
+  border-radius: 20px;
+  background: #333;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.sub-tab-btns .active {
+  background: #0af;
+  transform: scale(1.05);
+  box-shadow: 0 0 px rgba(0,170,255,0.5);
+}
+
+
+    /* Bottom tab styles */
+    .bottom-tab-btns {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.8);
+      z-index: 1000;
+    }
+    .bottom-tab-btns button {
+      background: #333;
+      border: none;
+      color: #fff;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      flex: 1;
+      margin: 0 8px;
+      transition: background 0.3s ease;
+    }
+    .bottom-tab-btns button.active {
+      background: #0af;
+      color: #fff;
+    }
+    .bottom-tab-btns button:hover:not(.active) {
+      background: #555;
+    }
+
+    #match-list {
+      padding: 10px 10px 70px; /* Keep space for bottom tab */
+    }
+
+    /* Match Card - SportzX Style */
+    .match {
+      background: linear-gradient(135deg, #1e1e2e, #2a2a3a);
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      overflow: hidden;
+      border: 1px solid #333;
+    }
+    .match:hover {
+      transform: scale(1.02);
+    }
+
+    .match-header {
+      background: #000; /* Match Title box black */
+      color: #fff; /* Text white */
+      padding: 8px 15px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .match-title-logo {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .match-content {
+      padding: 15px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .match-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .match-time-date {
+      font-size: 12px; /* Increased for Today and Upcoming */
+      color: #fff; /* Text white */
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .match-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .teams-vs {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .team {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 60px;
+    }
+
+    .team img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-bottom: 5px;
+    }
+
+    .team-name {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .vs-text {
+      font-weight: bold;
+      color: #0af;
+      font-size: 12px;
+      margin: 0 15px;
+      background: #333;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    .match-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+    }
+
+    .match-status {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .countdown-text {
+      font-size: 14px; /* Increased */
+      color: #fff; /* White color */
+      font-weight: 600;
+    }
+
+    /* Live Timer Style */
+    .live-timer {
+      font-size: 15px;
+      color: #fff; /* White color */
+      font-weight: 600;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Day Name Style for Upcoming */
+    .day-name {
+      font-size: 14px; /* Increased */
+      color: #fff; /* White color */
+      font-weight: 700;
+    }
+
+    /* Finished Status Style */
+    .finished-status {
+      font-size: 12px;
+      color: #888;
+      font-weight: 600;
+      background: #333;
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    .liveBlink {
+      display: inline-block;
+      padding: 4px 8px;
+      font-weight: 900;
+      font-size: 9px;
+      color: white;
+      background: linear-gradient(45deg, #ff003c, #ff7700, #ff003c);
+      background-size: 200% 200%;
+      border-radius: 15px;
+      animation: gradientPulse 3s ease infinite, blinkOpacity 1.5s infinite;
+      box-shadow: 0 0 8px #ff003c;
+      user-select: none;
+      text-transform: uppercase;
+    }
+    @keyframes blinkOpacity {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    @keyframes gradientPulse {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Server List Modal */
+    .server-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 9999;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.server-modal.active {
+  display: flex;
+}
+
+.server-content {
+  background: #222;
+  border: 1px solid #333;
+  padding: 15px;
+  width: 280px;
+  border-radius: 20px;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+    .server-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 0px solid ;
+    }
+
+    .server-title {
+    color: #0af;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+
+    .server-close {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    
+    .server-header-text {
+  color: #fff;
+  margin-bottom: 10px;
+  text-align: left;
+  font-weight: bold;
+  width: 100%;
+}
+
+    .server-list {
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  box-shadow: none; /* শ্যাডো সরানো হলো */
+}
+
+    .server-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .server-item {
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-size: 15px;
+    /* Complete removal of inner box styling */
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+  }
+  
+  .server-item:hover {
+    background: #333 !important;
+  }
+
+    /* TV & FM separate section */
+    #tv-section, #fm-section {
+      padding: 10px;
+      font-size: 16px;
+      color: #ccc;
+      text-align: center;
+    }
+
+    /* Notification Permission Popup */
+    .notification-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 10000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .notification-popup.show {
+      display: flex;
+    }
+
+    .notification-content {
+      background: #222;
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 90%;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 1px solid #333;
+    }
+
+    .notification-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .notification-title {
+      color: #0af;
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .notification-text {
+      color: #ccc;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .notification-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .notification-btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .notification-btn.allow {
+      background: #0af;
+      color: #fff;
+    }
+
+    .notification-btn.allow:hover {
+      background: #0099cc;
+    }
+
+    .notification-btn.later {
+      background: #444;
+      color: #ccc;
+    }
+
+    .notification-btn.later:hover {
+      background: #555;
+    }
+
+    /* Notification Status Indicator */
+    .notification-status {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      background: #333;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notification-status.enabled {
+      background: #0af;
+      display: flex;
+    }
+
+    .notification-status.disabled {
+      background: #ff6b35;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Notification Permission Popup -->
+<div id="notificationPopup" class="notification-popup">
+  <div class="notification-content">
+    <div class="notification-icon">🔔</div>
+    <div class="notification-title">Stay Updated!</div>
+    <div class="notification-text">
+      Get instant notifications for live matches, scores, and exclusive updates. Never miss a moment!
+    </div>
+    <div class="notification-buttons">
+      <button class="notification-btn allow" onclick="enableNotifications()">Allow Notifications</button>
+      <button class="notification-btn later" onclick="closeNotificationPopup()">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Status Indicator -->
+<div id="notificationStatus" class="notification-status">
+  <span id="notificationStatusText">🔔 Notifications Enabled</span>
+</div>
+
+<!-- Drawer / Side Menu -->
+<div id="drawer">
+  <button id="drawerClose" onclick="toggleDrawer()">✕</button>
+
+  <!-- Logo Section with Image -->
+  <div style="text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #333;">
+    <img src="https://i.postimg.cc/3rPWWckN/icon-192.png" alt="CricStreamZone Logo" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; border: 3px solid #0af;" />
+    <div style="color: #888; font-size: 12px;">All Sports Live Streaming</div>
+  </div>
+
+  <h3></h3>
+  <a href="https://t.me/CricStreamZone" target="_blank">📣 Join Telegram</a>
+  <a href="https://play.google.com/store/apps/details?id=com.genuine.leone" target="_blank">📲 Download NS Player</a>
+  <a href="#" onclick="showCategory('live'); toggleDrawer();">🏏 Live Matches</a>
+  <a href="#" onclick="showCategory('tv'); toggleDrawer();">📺 Live TV</a>
+  <a href="#" onclick="showCategory('fm'); toggleDrawer();">📻 FM Radio</a>
+  <a href="#" onclick="toggleNotificationSettings(); toggleDrawer();">🔔 Notification Settings</a>
+</div>
+<div id="drawerOverlay" onclick="toggleDrawer()"></div>
+
+<nav>
+  <div style="display: flex; align-items: center;">
+    <button onclick="toggleDrawer()" class="menu-toggle">☰</button>
+    <div class="logo">CricStreamZone</div>
+  </div>
+  <div class="search-container">
+    <button class="search-icon" onclick="toggleSearch()">🔍</button>
+  </div>
+
+  <!-- Search Overlay and Input -->
+  <div id="searchOverlay" class="search-overlay" onclick="closeSearch()"></div>
+  <input id="search" class="search-input" type="text" placeholder="Search matches, teams..." autocomplete="off" />
+  <button class="search-close" onclick="closeSearch()">✕</button>
+</nav>
+
+<div class="notice">
+  <marquee scrollamount="3">Welcome to CricStreamZone! ⚠️ Install NS Player for smooth streaming 📲 Join our Telegram for updates!</marquee>
+</div>
+
+<!-- Sub-tabs only visible in Live Category -->
+<div id="subTabs" class="sub-tab-btns" style="display:none;">
+  <button id="subLive" class="active">Live <span id="countLive">(0)</span></button>
+  <button id="subToday">Today <span id="countToday">(0)</span></button>
+  <button id="subUpcoming">Upcoming <span id="countUpcoming">(0)</span></button>
+  <button id="subFinished">Finished <span id="countFinished">(0)</span></button>
+</div>
+
+<div id="match-list"></div>
+
+<!-- TV and FM section -->
+<div id="tv-section" style="display:none;">
+  <h2>Live TV Channels</h2>
+  <p>TV Channel 1 - Link, TV Channel 2 - Link ... (এখানে TV এর লিংক দেখাবে)</p>
+</div>
+
+<div id="fm-section" style="display:none;">
+  <h2>FM Radio Stations</h2>
+  <p>FM Station 1 - Link, FM Station 2 - Link ... (এখানে FM এর লিংক দেখাবে)</p>
+</div>
+
+<!-- Server Modal -->
+<div id="serverModal" class="server-modal" onclick="closeServerModal()">
+  <div class="server-content" onclick="event.stopPropagation();">
+    <div style="color: #fff; margin-bottom: 22px; text-align: left; font-weight: bold; width: 95%;">Multiple Links Available</div>
+    <div id="serverList" class="server-list" style="text-align: center;">
+      <!-- Server links will be populated here -->
+    </div>
+  </div>
+</div>
+
+<!-- Bottom tab buttons -->
+<div class="bottom-tab-btns">
+  <button id="bottomLive" class="active">
+    <img src="https://i.postimg.cc/BvWg87Rd/videocam-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png" alt="Live Icon" style="vertical-align: middle; margin-right: 6px;" />
+    Live
+  </button>
+  <button id="bottomTV">
+    <img src="https://i.postimg.cc/K8JDvvxs/live-tv-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png" alt="TV Icon" style="vertical-align: middle; margin-right: 6px;" />
+    TV
+  </button>
+  <button id="bottomFM">
+    <img src="https://i.postimg.cc/YC472jwd/radio-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png" alt="FM Icon" style="vertical-align: middle; margin-right: 6px;" />
+    FM
+  </button>
+</div>
+
+<!-- Telegram Join Popup -->
+<div id="telegramPopup" style="display:none;">
+  <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000000aa; z-index:9999; display:flex; align-items:center; justify-content:center;">
+    <div style="background:#222; padding:20px 25px; border-radius:12px; max-width:90%; width:340px; text-align:center; box-shadow:0 0 10px #000;">
+      <h3 style="color:#0af; margin-bottom:10px;">📣 Join Our Telegram</h3>
+      <p style="color:#ccc; font-size:14px;">🔔 For live match updates, instant scores, and exclusive stream links — Join our official Telegram channel now! 📲 Download the NS Player app for smooth, uninterrupted streaming.</p>
+      <div style="margin-top:15px;">
+        <a href="https://t.me/CricStreamZone" target="_blank" style="background:#08f; color:#fff; padding:10px 18px; text-decoration:none; border-radius:8px; display:inline-block; font-weight:600;">Join Now</a>
+        <button onclick="closeTelegramPopup()" style="margin-left:10px; background:#444; color:#ccc; padding:10px 18px; border:none; border-radius:8px; cursor:pointer;">Later</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// OneSignal Configuration
+window.OneSignal = window.OneSignal || [];
+
+// Initialize OneSignal
+OneSignal.push(function() {
+  OneSignal.init({
+    appId: "8305d6bc-7596-4ac0-807b-43d2ae7d9ef8",
+    safari_web_id: "web.onesignal.auto.18140f72-7e1a-4b50-9ca8-2a3f0f8f6c8e",
+    notifyButton: {
+      enable: false,
+    },
+    allowLocalhostAsSecureOrigin: true,
+    autoRegister: false,
+    autoResubscribe: true,
+    welcomeNotification: {
+      disable: true
+    },
+    promptOptions: {
+      slidedown: {
+        enabled: false
+      },
+      customlink: {
+        enabled: false
+      }
+    }
+  });
+
+  // Check notification permission status
+  OneSignal.isPushNotificationsEnabled(function(isEnabled) {
+    updateNotificationStatus(isEnabled);
+  });
+
+  // Handle notification permission changes
+  OneSignal.on('subscriptionChange', function (isSubscribed) {
+    updateNotificationStatus(isSubscribed);
+    if (isSubscribed) {
+      console.log("User subscribed to notifications");
+      showNotificationMessage("🔔 Notifications enabled! You'll get live match updates.", "success");
+    }
+  });
+
+  // Handle notification clicks
+  OneSignal.on('notificationClick', function (event) {
+    console.log("Notification clicked:", event);
+    // Focus the window when notification is clicked
+    window.focus();
+  });
+});
+
+// Notification Functions
+function updateNotificationStatus(isEnabled) {
+  const statusEl = document.getElementById('notificationStatus');
+  const statusText = document.getElementById('notificationStatusText');
+  
+  if (isEnabled) {
+    statusEl.className = 'notification-status enabled';
+    statusText.textContent = '🔔 Notifications Enabled';
+    setTimeout(() => {
+      statusEl.style.display = 'none';
+    }, 3000);
+  } else {
+    statusEl.className = 'notification-status disabled';
+    statusText.textContent = '🔕 Notifications Disabled';
+  }
+}
+
+function showNotificationPopup() {
+  const popup = document.getElementById('notificationPopup');
+  popup.classList.add('show');
+}
+
+function closeNotificationPopup() {
+  const popup = document.getElementById('notificationPopup');
+  popup.classList.remove('show');
+  localStorage.setItem('notificationPromptShown', 'true');
+}
+
+function enableNotifications() {
+  OneSignal.push(function() {
+    OneSignal.registerForPushNotifications({
+      modalPrompt: true
+    }).then(function() {
+      console.log("Push notification registration successful");
+      closeNotificationPopup();
+    }).catch(function(error) {
+      console.error("Push notification registration failed:", error);
+      showNotificationMessage("❌ Failed to enable notifications. Please try again.", "error");
+    });
+  });
+}
+
+function toggleNotificationSettings() {
+  OneSignal.push(function() {
+    OneSignal.isPushNotificationsEnabled(function(isEnabled) {
+      if (isEnabled) {
+        // Show options to disable
+        if (confirm("Notifications are currently enabled. Do you want to disable them?")) {
+          OneSignal.setSubscription(false);
+          showNotificationMessage("🔕 Notifications disabled.", "info");
+        }
+      } else {
+        // Show options to enable
+        enableNotifications();
+      }
+    });
+  });
+}
+
+function showNotificationMessage(message, type) {
+  const messageEl = document.createElement('div');
+  messageEl.innerHTML = message;
+  messageEl.style.cssText = `
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: ${type === 'success' ? '#0af' : type === 'error' ? '#ff6b35' : '#333'};
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 10001;
+    font-size: 14px;
+    max-width: 90%;
+    text-align: center;
+  `;
+  
+  document.body.appendChild(messageEl);
+  
+  setTimeout(() => {
+    messageEl.style.opacity = '0';
+    messageEl.style.transform = 'translateX(-50%) translateY(-20px)';
+    messageEl.style.transition = 'all 0.3s ease';
+    setTimeout(() => {
+      if (messageEl.parentNode) {
+        messageEl.parentNode.removeChild(messageEl);
+      }
+    }, 300);
+  }, 4000);
+}
+
+// Auto-show notification popup after 10 seconds if not shown before
+setTimeout(() => {
+  const alreadyShown = localStorage.getItem('notificationPromptShown');
+  if (!alreadyShown) {
+    OneSignal.push(function() {
+      OneSignal.isPushNotificationsEnabled(function(isEnabled) {
+        if (!isEnabled) {
+          showNotificationPopup();
+        }
+      });
+    });
+  }
+}, 10000);
+
+// Search functionality - Updated
+function toggleSearch() {
+  const searchInput = document.getElementById('search');
+  const searchClose = document.querySelector('.search-close');
+  const searchOverlay = document.getElementById('searchOverlay');
+
+  if (!searchInput.classList.contains('active')) {
+    searchOverlay.classList.add('active');
+    searchInput.classList.add('active');
+    searchClose.classList.add('active');
+
+    setTimeout(() => {
+      searchInput.focus();
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        searchInput.click();
+      }
+    }, 350);
+  } else {
+    closeSearch();
+  }
+}
+
+function closeSearch() {
+  const searchInput = document.getElementById('search');
+  const searchClose = document.querySelector('.search-close');
+  const searchOverlay = document.getElementById('searchOverlay');
+
+  searchOverlay.classList.remove('active');
+  searchInput.classList.remove('active');
+  searchClose.classList.remove('active');
+  searchInput.value = '';
+  searchInput.blur();
+
+  if(document.getElementById('subTabs').style.display === 'block'){  
+    renderMatches(currentSubTab);  
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('search').classList.contains('active')) {
+    closeSearch();
+  }
+});
+
+document.getElementById('search').addEventListener('input', (e) => {  
+  if(document.getElementById('subTabs').style.display === 'block'){  
+    renderMatches(currentSubTab);  
+  }
+});
+
+document.getElementById('search').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    this.blur();
+  }
+});
+
+// Drawer toggle function
+function toggleDrawer() {  
+  const drawer = document.getElementById('drawer');  
+  const overlay = document.getElementById('drawerOverlay');  
+  drawer.classList.toggle('open');  
+  overlay.classList.toggle('show');  
+}
+
+// Server modal functions
+function openServerModal(servers) {
+  const modal = document.getElementById('serverModal');
+  const serverList = document.getElementById('serverList');
+
+  serverList.innerHTML = '';
+
+  if (servers && servers.length > 0) {
+    servers.forEach(server => {
+      const serverItem = document.createElement('a');
+      serverItem.href = server.link;
+      serverItem.target = '_blank';
+      serverItem.rel = 'noopener noreferrer';
+      serverItem.textContent = server.name;
+      serverItem.className = 'server-item';
+      serverList.appendChild(serverItem);
+    });
+  } else {
+    serverList.innerHTML = '<div style="color:#888; text-align:center; padding:20px;">No servers available</div>';
+  }
+
+  modal.classList.add('active');
+}
+
+function closeServerModal() {
+  document.getElementById('serverModal').classList.remove('active');
+}
+
+// Telegram popup functions
+function closeTelegramPopup() {  
+  document.getElementById('telegramPopup').style.display = 'none';  
+  localStorage.setItem('hideTelegramPopup', 'true');  
+}  
+
+window.addEventListener('load', () => {  
+  const alreadyClosed = localStorage.getItem('hideTelegramPopup');  
+  if (!alreadyClosed) {  
+    setTimeout(() => {  
+      document.getElementById('telegramPopup').style.display = 'block';  
+    }, 5000);
+  }  
+});
+
+// API url - আপনার নতুন Google Apps Script URL দিন
+const matchesApi = "https://script.google.com/macros/s/AKfycbxZfHUGsH19x3hZp5eeo3tEMJuQxvOPHpyS_LAqow4rlBciyrhP0NdaI2NzeZiyA5SF9A/exec";  
+
+let matches = [];  
+let intervals = [];  
+let currentSubTab = 'live';
+
+function clearIntervals() {  
+  intervals.forEach(i => clearInterval(i));  
+  intervals = [];  
+}  
+
+function getNow() { return new Date(); }  
+function getCountdown(t) { return Math.max(0, new Date(t) - getNow()); }  
+
+// নতুন ফরম্যাট ফাংশন - স্মার্ট টাইমার (সেকেন্ড -> মিনিট -> ঘন্টা)
+function formatTime(ms) {
+  let totalSeconds = Math.floor(ms / 1000);
+  let hours = Math.floor(totalSeconds / 3600);
+  let minutes = Math.floor((totalSeconds % 3600) / 60);
+  let seconds = totalSeconds % 60;
+  
+  // স্মার্ট ডিসপ্লে: শুধু সেকেন্ড -> মিনিট:সেকেন্ড -> ঘন্টা:মিনিট:সেকেন্ড
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  } else if (minutes > 0) {
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  } else {
+    return `${seconds}`;
+  }
+}
+
+function formatCountdown(ms) {
+  return formatTime(ms);
+}
+
+function formatCountUp(ms) {
+  return formatTime(ms);
+}
+
+// দিনের নাম বের করার ফাংশন
+function getDayName(date) {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  
+  const targetDate = new Date(date);
+  
+  if (targetDate.toDateString() === tomorrow.toDateString()) {
+    return 'Tomorrow';
+  }
+  
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[targetDate.getDay()];
+}
+
+// Match status checker with duration support
+function getMatchStatus(matchTime, matchDuration, now) {
+  const startTime = new Date(matchTime);
+  const endTime = new Date(startTime.getTime() + (matchDuration * 60 * 1000)); // Convert minutes to milliseconds
+  const oneHourBefore = new Date(startTime.getTime() - 60 * 60 * 1000);
+  
+  if (now >= endTime) {
+    return 'finished';
+  } else if (now >= startTime) {
+    return 'live';
+  } else if (now >= oneHourBefore) {
+    return 'coming_soon';
+  } else {
+    return 'upcoming';
+  }
+}
+
+function renderMatches(type = 'live') {  
+  clearIntervals();  
+  const now = getNow();  
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());  
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);  
+  
+  const list = document.getElementById('match-list');  
+  list.innerHTML = "";  
+  const filter = document.getElementById('search').value.toLowerCase();  
+  
+  let filteredMatches = matches.filter(m => {  
+    const ct = new Date(m.MatchTime);
+    const duration = parseInt(m.MatchDuration) || 360; // Default 6 hours
+    const status = getMatchStatus(m.MatchTime, duration, now);
+    
+    if (type === 'live' && !(status === 'live' || status === 'coming_soon')) return false;
+    else if (type === 'today') {  
+      if (ct < todayStart || ct >= todayEnd || status === 'live' || status === 'coming_soon' || status === 'finished') return false;  
+    }  
+    else if (type === 'upcoming') {  
+      if (ct < now || (ct >= todayStart && ct < todayEnd) || status === 'coming_soon' || status === 'finished') return false;  
+    }
+    else if (type === 'finished') {
+      if (status !== 'finished') return false;
+    }
+    
+    if (filter && !(m.Match.toLowerCase().includes(filter) || m.Team1.toLowerCase().includes(filter) || m.Team2.toLowerCase().includes(filter))) return false;  
+    
+    return true;
+  });  
+  
+  // Sort matches by time
+  filteredMatches.sort((a, b) => new Date(a.MatchTime) - new Date(b.MatchTime));  
+  
+  if (filteredMatches.length === 0) {  
+    let emojiMessage = '😴 No matches available right now.';  
+    if (type === 'live') emojiMessage = '📴 No live matches at the moment.';  
+    else if (type === 'upcoming') emojiMessage ='🕒 No upcoming matches found.';  
+    else if (type === 'today') emojiMessage = '📅 No matches scheduled for today.';
+    else if (type === 'finished') emojiMessage = '🏁 No finished matches found.';
+    
+    list.innerHTML = `  
+      <div style="  
+        max-width: 420px;  
+        margin: 40px auto;  
+        padding: 30px 20px;  
+        background: #1e1e1e;  
+        border-radius: 14px;  
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);  
+        color: #ccc;  
+        font-family: 'Segoe UI', sans-serif;  
+        font-size: 1.25rem;  
+        font-weight: 500;  
+        text-align: center;  
+        user-select: none;  
+        display: flex;  
+        align-items: center;  
+        justify-content: center;  
+        gap: 14px;  
+      ">  
+        <span style="font-size: 2.5rem;">${emojiMessage.match(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})+/u)[0]}</span>  
+        <span>${emojiMessage.replace(/^(\p{Emoji_Presentation}|\p{Extended_Pictographic})+\s*/, '')}</span>  
+      </div>  
+    `;  
+    return;  
+  }  
+  
+  filteredMatches.forEach((m, i) => {  
+    const ct = new Date(m.MatchTime);
+    const duration = parseInt(m.MatchDuration) || 360;
+    const status = getMatchStatus(m.MatchTime, duration, now);
+    
+    const div = document.createElement('div');  
+    div.className = "match";
+    
+    // Click handler for opening server modal
+    div.onclick = () => {
+      if (m.servers && m.servers.length > 0) {
+        openServerModal(m.servers);
+      }
+    };
+    
+    const dateStr = ct.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });  
+    const timeStr = ct.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    
+    let statusContent = '';
+    let leftContent = '';
+    
+    // Match header without logo - শুধু টেক্সট
+    const matchHeaderContent = m.Match;
+    
+    if (status === 'live') {
+      leftContent = `<div class="live-timer" id="cd${type}${i}"></div>`;
+      statusContent = `<div class="live-indicator"><div id="liveAnim${i}" style="width: 60px; height: 60px;"></div></div>`;
+    } else if (status === 'coming_soon' && type === 'live') {
+      leftContent = `<div class="live-timer" id="cd${type}${i}"></div>`;
+      statusContent = `<div id="comingSoonAnim${i}" style="width: 60px; height: 60px;"></div>`;
+    } else if (status === 'finished') {
+      leftContent = `<div class="match-time-date">${dateStr} ${timeStr}</div>`;
+      statusContent = `<div class="finished-status">Match Ended</div>`;
+    } else if (type === 'today') {
+      leftContent = `<div class="match-time-date">${dateStr} ${timeStr}</div>`;
+      statusContent = `<div class="countdown-text" id="cd${type}${i}"></div>`;
+    } else if (type === 'upcoming') {
+      leftContent = `<div class="match-time-date">${dateStr} ${timeStr}</div>`;
+      const dayName = getDayName(m.MatchTime);
+      statusContent = `<div class="day-name">${dayName}</div>`;
+    }  
+    
+    div.innerHTML = `
+      <div class="match-header">
+        ${matchHeaderContent}
+      </div>
+      <div class="match-content">
+        <div class="match-left">
+          ${leftContent}
+        </div>
+        
+        <div class="match-center">
+          <div class="teams-vs">
+            <div class="team">
+              <img src="${m.Team1Logo}" alt="${m.Team1}" loading="lazy" />
+              <div class="team-name">${m.Team1}</div>
+            </div>
+            <div class="vs-text">VS</div>
+            <div class="team">
+              <img src="${m.Team2Logo}" alt="${m.Team2}" loading="lazy" />
+              <div class="team-name">${m.Team2}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="match-right">
+          ${statusContent}
+        </div>
+      </div>
+    `;
+    
+    list.appendChild(div);  
+    
+    // Lottie animations for live matches
+    if (status === 'live') {  
+      setTimeout(() => {  
+        const animContainer = document.getElementById('liveAnim' + i);
+        if (animContainer && !animContainer.hasAttribute('data-loaded')) {
+          animContainer.setAttribute('data-loaded', 'true');
+          bodymovin.loadAnimation({  
+            container: animContainer,  
+            renderer: 'svg',  
+            loop: true,  
+            autoplay: true,  
+            path: 'https://raw.githubusercontent.com/Hasanmahmud000/HasanTv/refs/heads/main/live-icon.json'  
+          });  
+        }
+      }, 0);  
+    }  
+
+    // Coming Soon animation
+    if (status === 'coming_soon' && type === 'live') {  
+      setTimeout(() => {  
+        const animContainer = document.getElementById('comingSoonAnim' + i);
+        if (animContainer && !animContainer.hasAttribute('data-loaded')) {
+          animContainer.setAttribute('data-loaded', 'true');
+          bodymovin.loadAnimation({  
+            container: animContainer,  
+            renderer: 'svg',  
+            loop: true,  
+            autoplay: true,  
+            path: 'https://raw.githubusercontent.com/Hasanmahmud000/Ccvv/refs/heads/main/live-icon.json'  
+          });  
+        }
+      }, 0);  
+    }
+    
+    // Timer intervals
+    if (status === 'live' || status === 'coming_soon') {  
+      intervals.push(setInterval(() => {  
+        const now = getNow();
+        const matchTime = new Date(m.MatchTime);
+        const cdEl = div.querySelector(`#cd${type}${i}`);  
+        
+        if (cdEl) {  
+          const diffLive = now - matchTime;  
+          cdEl.innerText = formatCountUp(Math.abs(diffLive));  
+        }
+        
+        // Check if match transitions from coming soon to live
+        if (now >= matchTime && status === 'coming_soon') {
+          const comingSoonContainer = div.querySelector(`#comingSoonAnim${i}`);
+          
+          if (comingSoonContainer) {
+            comingSoonContainer.innerHTML = '';
+            comingSoonContainer.id = `liveAnim${i}`;
+            
+            bodymovin.loadAnimation({  
+              container: comingSoonContainer,  
+              renderer: 'svg',  
+              loop: true,  
+              autoplay: true,  
+              path: 'https://raw.githubusercontent.com/Hasanmahmud000/HasanTv/refs/heads/main/live-icon.json'  
+            });
+            
+            comingSoonContainer.style.transition = 'all 0.5s ease';
+            comingSoonContainer.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+              comingSoonContainer.style.transform = 'scale(1)';
+            }, 500);
+          }
+        }
+        
+        // Check if match has ended
+        const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
+        if (now >= endTime && (status === 'live' || status === 'coming_soon')) {
+          // Automatically switch to Finished tab
+          setTimeout(() => {
+            showCategory('finished'); // Automatically switch to Finished tab
+          }, 1000);
+        }
+      }, 1000));  
+    } else if (type === 'today') {  
+      intervals.push(setInterval(() => {  
+        const cdEl = div.querySelector(`#cd${type}${i}`);  
+        if (cdEl) {  
+          const remain = getCountdown(m.MatchTime);  
+          cdEl.innerText = remain > 0 ? formatCountdown(remain) : "Starting soon";  
+        }  
+      }, 1000));  
+    }
+  });  
+}  
+
+// Bottom tab handler  
+function showCategory(category) {  
+  document.getElementById('bottomLive').classList.remove('active');  
+  document.getElementById('bottomTV').classList.remove('active');  
+  document.getElementById('bottomFM').classList.remove('active');  
+
+  document.getElementById('bottom' + category.charAt(0).toUpperCase() + category.slice(1)).classList.add('active');  
+
+  document.getElementById('search').value = '';
+  closeSearch();
+
+  document.getElementById('subTabs').style.display = 'none';  
+  document.getElementById('match-list').style.display = 'none';  
+  document.getElementById('tv-section').style.display = 'none';  
+  document.getElementById('fm-section').style.display = 'none';  
+
+  if(category === 'live') {  
+    document.getElementById('subTabs').style.display = 'block';  
+    document.getElementById('match-list').style.display = 'block';  
+    currentSubTab = 'live';  
+    setActiveSubTab(currentSubTab);  
+    renderMatches(currentSubTab);  
+  } else if(category === 'tv') {  
+    document.getElementById('tv-section').style.display = 'block';  
+  } else if(category === 'fm') {  
+    document.getElementById('fm-section').style.display = 'block';  
+  }  
+}  
+
+// Sub-tab handler  
+function setActiveSubTab(subTab) {  
+  document.getElementById('subLive').classList.remove('active');  
+  document.getElementById('subToday').classList.remove('active');   
+  document.getElementById('subUpcoming').classList.remove('active');
+  document.getElementById('subFinished').classList.remove('active');
+  
+  document.getElementById('sub' + subTab.charAt(0).toUpperCase() + subTab.slice(1)).classList.add('active');  
+}  
+
+document.getElementById('bottomLive').addEventListener('click', () => showCategory('live'));  
+document.getElementById('bottomTV').addEventListener('click', () => showCategory('tv'));  
+document.getElementById('bottomFM').addEventListener('click', () => showCategory('fm'));  
+
+// Sub Tab buttons click  
+document.getElementById('subLive').addEventListener('click', () => {  
+  currentSubTab = 'live';  
+  setActiveSubTab(currentSubTab);  
+  renderMatches(currentSubTab);  
+});  
+
+document.getElementById('subToday').addEventListener('click', () => {  
+  currentSubTab = 'today';  
+  setActiveSubTab(currentSubTab);  
+  renderMatches(currentSubTab);  
+});
+
+document.getElementById('subUpcoming').addEventListener('click', () => {  
+  currentSubTab = 'upcoming';  
+  setActiveSubTab(currentSubTab);  
+  renderMatches(currentSubTab);  
+});
+
+document.getElementById('subFinished').addEventListener('click', () => {  
+  currentSubTab = 'finished';  
+  setActiveSubTab(currentSubTab);  
+  renderMatches(currentSubTab);  
+});
+
+document.getElementById('search').addEventListener('input', () => {  
+  if(document.getElementById('subTabs').style.display === 'block'){  
+    renderMatches(currentSubTab);  
+  }  
+});  
+
+// Initial data load to show Live Category  
+fetch(matchesApi)  
+.then(res => res.json())  
+.then(data => {  
+  matches = data.matches || [];  
+
+  const now = new Date();  
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);  
+
+  // Count matches by status
+  let liveCount = 0;
+  let todayCount = 0;
+  let upcomingCount = 0;
+  let finishedCount = 0;
+
+  matches.forEach(m => {
+    const duration = parseInt(m.MatchDuration) || 360;
+    const status = getMatchStatus(m.MatchTime, duration, now);
+    const ct = new Date(m.MatchTime);
+    
+    if (status === 'live' || status === 'coming_soon') {
+      liveCount++;
+    } else if (status === 'finished') {
+      finishedCount++;
+    } else if (ct >= todayStart && ct < todayEnd) {
+      todayCount++;
+    } else if (ct > todayEnd) {
+      upcomingCount++;
+    }
+  });
+
+  // Update tab counts
+  document.getElementById("countLive").innerText = `(${liveCount})`;  
+  document.getElementById("countToday").innerText = `(${todayCount})`;  
+  document.getElementById("countUpcoming").innerText = `(${upcomingCount})`;
+  document.getElementById("countFinished").innerText = `(${finishedCount})`;
+
+  // Smart tab selection
+  if (liveCount > 0) {
+    showCategory('live');
+    currentSubTab = 'live';
+    setActiveSubTab('live');
+  } else if (todayCount > 0) {
+    showCategory('live');
+    currentSubTab = 'today';
+    setActiveSubTab('today');
+  } else if (upcomingCount > 0) {
+    showCategory('live');
+    currentSubTab = 'upcoming';
+    setActiveSubTab('upcoming');
+  } else {
+    showCategory('live');
+    currentSubTab = 'finished';
+    setActiveSubTab('finished');
+  }
+  
+  renderMatches(currentSubTab);
+})  
+.catch(e => {  
+  console.error('Error fetching matches:', e);  
+  document.getElementById('match-list').innerHTML = '<p style="text-align:center; color:#f00;">Failed to load match data.</p>';  
+});
+
+// Service Worker for PWA
+if ('serviceWorker' in navigator) {  
+  navigator.serviceWorker.register('sw.js').then(registration => {  
+
+    function showUpdatePopup() {  
+      const box = document.createElement('div');  
+      box.innerHTML = "🆕 New version available — <b>Tap to update</b>";  
+      box.style.cssText = `  
+        position: fixed;  
+        bottom: 20px;  
+        left: 50%;  
+        transform: translateX(-50%);  
+        background: #0af;  
+        color: white;  
+        padding: 12px 16px;  
+        border-radius: 30px;  
+        font-weight: bold;  
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);  
+        z-index: 9999;  
+        cursor: pointer;  
+      `;  
+      box.onclick = () => {  
+        box.remove();  
+        if (registration.waiting) {  
+          registration.waiting.postMessage({ action: "skipWaiting" });  
+        }  
+      };  
+      document.body.appendChild(box);  
+    }  
+
+    function listenForWaitingSW(reg) {  
+      if (!reg) return;  
+      if (reg.waiting) return showUpdatePopup();  
+
+      if (reg.installing) {  
+        reg.installing.addEventListener("statechange", function () {  
+          if (this.state === "installed" && navigator.serviceWorker.controller) {  
+            showUpdatePopup();  
+          }  
+        });  
+      }  
+
+      reg.addEventListener("updatefound", () => {  
+        if (reg.installing) {  
+          reg.installing.addEventListener("statechange", function () {  
+            if (this.state === "installed" && navigator.serviceWorker.controller) {  
+              showUpdatePopup();  
+            }  
+          });  
+        }  
+      });  
+    }  
+
+    listenForWaitingSW(registration);  
+  });  
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {  
+    window.location.reload();  
+  });  
+}  
+
+// Touch/Swipe functionality for sub-tabs
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
+
+function handleSwipe() {
+  const deltaX = touchEndX - touchStartX;
+  const deltaY = touchEndY - touchStartY;
+  
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+    if (document.getElementById('subTabs').style.display === 'block') {
+      const subTabs = ['live', 'today', 'upcoming', 'finished'];
+      const currentIndex = subTabs.indexOf(currentSubTab);
+      
+      if (deltaX > 0) {
+        if (currentIndex > 0) {
+          const newTab = subTabs[currentIndex - 1];
+          currentSubTab = newTab;
+          setActiveSubTab(currentSubTab);
+          renderMatches(currentSubTab);
+        }
+      } else {
+        if (currentIndex < subTabs.length - 1) {
+          const newTab = subTabs[currentIndex + 1];
+          currentSubTab = newTab;
+          setActiveSubTab(currentSubTab);
+          renderMatches(currentSubTab);
+        }
+      }
+    }
+  }
+}
+
+document.addEventListener('touchstart', function(e) {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+  touchEndX = e.changedTouches[0].screenX;
+  touchEndY = e.changedTouches[0].screenY;
+  handleSwipe();
+}, { passive: true });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  if (document.activeElement !== document.getElementById('search')) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      if (document.getElementById('subTabs').style.display === 'block') {
+        const subTabs = ['live', 'today', 'upcoming', 'finished'];
+        const currentIndex = subTabs.indexOf(currentSubTab);
+        
+        if (e.key === 'ArrowLeft' && currentIndex > 0) {
+          const newTab = subTabs[currentIndex - 1];
+          currentSubTab = newTab;
+          setActiveSubTab(currentSubTab);
+          renderMatches(currentSubTab);
+        } else if (e.key === 'ArrowRight' && currentIndex < subTabs.length - 1) {
+          const newTab = subTabs[currentIndex + 1];
+          currentSubTab = newTab;
+          setActiveSubTab(currentSubTab);
+          renderMatches(currentSubTab);
+        }
+      }
+    }
+    
+    if (e.key === '/' || (e.ctrlKey && e.key === 'f')) {
+      e.preventDefault();
+      toggleSearch();
+    }
+    
+    if (e.key === 'Escape') {
+      if (document.getElementById('search').classList.contains('active')) {
+        toggleSearch();
+      } else if (document.getElementById('serverModal').classList.contains('active')) {
+        closeServerModal();
+      }
+    }
+  }
+});
+
+// Auto-refresh matches every 30 seconds
+setInterval(() => {
+  if (document.getElementById('subTabs').style.display === 'block') {
+    fetch(matchesApi)
+      .then(res => res.json())
+      .then(data => {
+        const oldMatchesLength = matches.length;
+        matches = data.matches || [];
+        
+        if (matches.length !== oldMatchesLength) {
+          const now = new Date();
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+          
+          let liveCount = 0;
+          let todayCount = 0;
+          let upcomingCount = 0;
           let finishedCount = 0;
 
           matches.forEach(m => {
