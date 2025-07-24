@@ -1,18 +1,19 @@
+// sw.js - Updated Service Worker with OneSignal Support
+
 const CACHE_NAME = 'cricstreamzone-v1.2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js',
+  'https://cdn.onesignal.com/sdks/OneSignalSDK.js',
   'https://i.postimg.cc/3rPWWckN/icon-192.png'
 ];
 
 // Install event
-self.addEventListener('install', event => {
+self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
+      .then(function(cache) {
         return cache.addAll(urlsToCache);
       })
   );
@@ -20,10 +21,10 @@ self.addEventListener('install', event => {
 });
 
 // Fetch event
-self.addEventListener('fetch', event => {
+self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
+      .then(function(response) {
         if (response) {
           return response;
         }
@@ -34,13 +35,12 @@ self.addEventListener('fetch', event => {
 });
 
 // Activate event
-self.addEventListener('activate', event => {
+self.addEventListener('activate', function(event) {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then(function(cacheNames) {
       return Promise.all(
-        cacheNames.map(cacheName => {
+        cacheNames.map(function(cacheName) {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -50,123 +50,71 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Handle skip waiting message
-self.addEventListener('message', event => {
-  if (event.data && event.data.action === 'skipWaiting') {
-    self.skipWaiting();
+// Background sync for notifications
+self.addEventListener('sync', function(event) {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(
+      // Perform background sync operations
+      fetch('/api/sync-data')
+        .then(response => response.json())
+        .then(data => {
+          console.log('Background sync completed:', data);
+        })
+        .catch(error => {
+          console.error('Background sync failed:', error);
+        })
+    );
   }
+});
+
+// Handle push notifications (OneSignal will handle most of this)
+self.addEventListener('push', function(event) {
+  console.log('Push notification received:', event);
   
-  // Handle notification requests
-  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-    const { payload } = event.data;
-    
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      icon: payload.icon || '/icon-192.png',
-      badge: payload.badge || '/icon-192.png',
-      tag: payload.tag,
-      data: payload.data,
-      requireInteraction: true,
+  if (event.data) {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: data.icon || '/icon-192.png',
+      badge: '/icon-192.png',
+      vibrate: [200, 100, 200],
+      data: data.data,
       actions: [
         {
-          action: 'view',
-          title: 'Watch Now',
+          action: 'open',
+          title: 'Open App',
           icon: '/icon-192.png'
         },
         {
           action: 'close',
-          title: 'Close'
+          title: 'Close',
+          icon: '/icon-192.png'
         }
       ]
-    });
+    };
+    
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
   }
 });
 
-// Handle notification click
-self.addEventListener('notificationclick', event => {
+// Handle notification clicks
+self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   
-  if (event.action === 'view' || !event.action) {
+  if (event.action === 'open' || !event.action) {
     event.waitUntil(
       clients.openWindow('/')
     );
   }
 });
 
-// Background sync for notifications
-self.addEventListener('sync', event => {
-  if (event.tag === 'background-sync') {
-    event.waitUntil(doBackgroundSync());
+// Handle messages from main thread
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
   }
 });
 
-function doBackgroundSync() {
-  // This will run in background to check for match updates
-  return fetch('https://script.google.com/macros/s/AKfycbxZfHUGsH19x3hZp5eeo3tEMJuQxvOPHpyS_LAqow4rlBciyrhP0NdaI2NzeZiyA5SF9A/exec')
-    .then(response => response.json())
-    .then(data => {
-      // Process matches and send notifications if needed
-      const matches = data.matches || [];
-      const now = new Date();
-      
-      matches.forEach(match => {
-        const matchTime = new Date(match.MatchTime);
-        const timeDiff = matchTime - now;
-        
-        // Check for 15 minute notification
-        if (timeDiff > 14 * 60 * 1000 && timeDiff <= 16 * 60 * 1000) {
-          self.registration.showNotification('🏏 Match Starting Soon!', {
-            body: `${match.Team1} vs ${match.Team2} starts in 15 minutes`,
-            icon: '/icon-192.png',
-            badge: '/icon-192.png',
-            tag: `match-15min-${match.Team1}-${match.Team2}`,
-            requireInteraction: true,
-            actions: [
-              { action: 'view', title: 'Watch Now' },
-              { action: 'close', title: 'Close' }
-            ]
-          });
-        }
-        
-        // Check for 5 minute notification
-        if (timeDiff > 4 * 60 * 1000 && timeDiff <= 6 * 60 * 1000) {
-          self.registration.showNotification('⚡ Match Starting Very Soon!', {
-            body: `${match.Team1} vs ${match.Team2} starts in 5 minutes! Get ready!`,
-            icon: '/icon-192.png',
-            badge: '/icon-192.png',
-            tag: `match-5min-${match.Team1}-${match.Team2}`,
-            requireInteraction: true,
-            actions: [
-              { action: 'view', title: 'Watch Now' },
-              { action: 'close', title: 'Close' }
-            ]
-          });
-        }
-        
-        // Check for live notification
-        if (timeDiff > -2 * 60 * 1000 && timeDiff <= 2 * 60 * 1000) {
-          self.registration.showNotification('🔴 LIVE NOW!', {
-            body: `${match.Team1} vs ${match.Team2} is now LIVE! Watch now!`,
-            icon: '/icon-192.png',
-            badge: '/icon-192.png',
-            tag: `match-live-${match.Team1}-${match.Team2}`,
-            requireInteraction: true,
-            actions: [
-              { action: 'view', title: 'Watch Now' },
-              { action: 'close', title: 'Close' }
-            ]
-          });
-        }
-      });
-    })
-    .catch(error => {
-      console.error('Background sync error:', error);
-    });
-}
-
-// Periodic background sync (every 5 minutes)
-self.addEventListener('periodicsync', event => {
-  if (event.tag === 'match-check') {
-    event.waitUntil(doBackgroundSync());
-  }
-});
+console.log('Service Worker loaded with OneSignal support');
