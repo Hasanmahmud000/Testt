@@ -54,38 +54,37 @@
       display: block;
     }
 
-    /* Drawer (Side menu) */
+    /* Drawer (Side menu) - Updated Design */
     #drawer {
       position: fixed;
       top: 0;
       left: -600px;
       width: 280px;
       height: 100%;
-      background: #000;
+      background: #000; /* Changed to black */
       z-index: 2000;
       padding: 20px;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.7);
       transition: left 0.3s ease;
-      overflow-y: auto;
+      /* Removed box-shadow */
     }
     #drawer.open {
       left: 0;
     }
     #drawer h3 {
-      color: #0af;
+      color: #fff; /* Changed to white */
       margin-bottom: 20px;
     }
     #drawer a {
       display: block;
-      color: #fff;
+      color: #fff; /* White text */
       text-decoration: none;
       margin-bottom: 12px;
       padding: 10px;
       border-radius: 6px;
       transition: background 0.2s ease;
       font-weight: 600;
-      background: #111;
-      border: 1px solid #333;
+      background: #000; /* Black background */
+      border: 1px solid #333; /* Added subtle border */
     }
     #drawer a:hover {
       background: #0af;
@@ -93,7 +92,7 @@
     }
     #drawerClose {
       background: none;
-      color: #ccc;
+      color: #fff; /* Changed to white */
       border: none;
       font-size: 22px;
       position: absolute;
@@ -117,8 +116,8 @@
       display: block;
     }
 
-    /* Modal Styles */
-    .modal {
+    /* Modal Styles for Copyright, Contact, Donate */
+    .info-modal {
       position: fixed;
       top: 0;
       left: 0;
@@ -133,90 +132,65 @@
       box-sizing: border-box;
     }
 
-    .modal.active {
+    .info-modal.active {
       display: flex;
     }
 
-    .modal-content {
-      background: #000;
-      border: 1px solid #333;
+    .info-content {
+      background: #222;
       border-radius: 12px;
       padding: 20px;
       max-width: 90%;
+      width: 400px;
       max-height: 80%;
       overflow-y: auto;
       position: relative;
       color: #fff;
     }
 
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #333;
-    }
-
-    .modal-title {
+    .info-content h3 {
       color: #0af;
-      font-size: 18px;
-      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
     }
 
-    .modal-close {
+    .info-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
       background: none;
       border: none;
       color: #ccc;
       font-size: 24px;
       cursor: pointer;
-      padding: 0;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
-    .modal-close:hover {
+    .copy-address {
+      background: #333;
       color: #fff;
-    }
-
-    .modal-body {
-      line-height: 1.6;
-      font-size: 14px;
-    }
-
-    .modal-body p {
-      margin-bottom: 15px;
-    }
-
-    .donation-address {
-      background: #111;
-      border: 1px solid #333;
       padding: 10px;
       border-radius: 8px;
       font-family: monospace;
       font-size: 12px;
-      word-break: break-all;
       margin: 10px 0;
+      word-break: break-all;
       cursor: pointer;
+      border: 1px solid #555;
       transition: background 0.3s ease;
     }
 
-    .donation-address:hover {
-      background: #222;
+    .copy-address:hover {
+      background: #444;
     }
 
     .qr-code {
       text-align: center;
-      margin: 20px 0;
+      margin: 15px 0;
     }
 
     .qr-code img {
       max-width: 200px;
       border-radius: 8px;
-      border: 1px solid #333;
     }
 
     body {
@@ -353,11 +327,6 @@
       .search-input:focus {
         outline: none;
         border-bottom: 2px solid #0ff;
-      }
-
-      .modal-content {
-        max-width: 95%;
-        margin: 10px;
       }
     }
 
@@ -794,7 +763,7 @@
   <!-- Logo Section with Image -->
   <div style="text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #333;">
     <img src="https://i.postimg.cc/3rPWWckN/icon-192.png" alt="CricStreamZone Logo" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; border: 3px solid #0af;" />
-    <div style="color: #888; font-size: 12px;">All Sports Live Streaming</div>
+    <div style="color: #fff; font-size: 12px;">All Sports Live Streaming</div>
   </div>
 
   <h3></h3>
@@ -803,84 +772,14 @@
   <a href="#" onclick="showCategory('live'); toggleDrawer();">🏏 Live Matches</a>
   <a href="#" onclick="showCategory('tv'); toggleDrawer();">📺 Live TV</a>
   <a href="#" onclick="showCategory('fm'); toggleDrawer();">📻 FM Radio</a>
+  <a href="#" onclick="openCopyrightModal(); toggleDrawer();">⚖️ Copyright</a>
+  <a href="#" onclick="openContactModal(); toggleDrawer();">📧 Contact US</a>
+  <a href="#" onclick="openDonateModal(); toggleDrawer();">💝 Donate Us</a>
   <a href="https://cric-zone-com.vercel.app/" target="_blank">🌐 Website</a>
-  <a href="#" onclick="openModal('copyrightModal'); toggleDrawer();">⚖️ Copyright</a>
-  <a href="#" onclick="openModal('contactModal'); toggleDrawer();">📧 Contact Us</a>
-  <a href="#" onclick="openModal('donateModal'); toggleDrawer();">💝 Donate Us</a>
-  <a href="#" onclick="shareApp(); toggleDrawer();">📤 Share App</a>
+  <a href="#" onclick="shareApp(); toggleDrawer();">📤 Share Apps</a>
   <a href="#" onclick="exitApp(); toggleDrawer();">🚪 Exit</a>
 </div>
 <div id="drawerOverlay" onclick="toggleDrawer()"></div>
-
-<!-- Copyright Modal -->
-<div id="copyrightModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">⚖️ Copyright Notice</div>
-      <button class="modal-close" onclick="closeModal('copyrightModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <p>CricStreamZone does not host or stream any channels directly.</p>
-      <p>All streaming links provided in this application are freely available on the internet and sourced from third-party websites.</p>
-      <p>We simply provide a convenient way to access those streams.</p>
-      <p><strong>All content is the copyright of their respective owners.</strong></p>
-    </div>
-  </div>
-</div>
-
-<!-- Contact Modal -->
-<div id="contactModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">📧 Contact Us</div>
-      <button class="modal-close" onclick="closeModal('contactModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <p>For any queries, suggestions, or support, feel free to contact us:</p>
-      <div class="donation-address" onclick="copyToClipboard('cricstreamzonebd@gmail.com', 'Email copied!')">
-        cricstreamzonebd@gmail.com
-      </div>
-      <p style="font-size: 12px; color: #888; text-align: center;">Click to copy email address</p>
-    </div>
-  </div>
-</div>
-
-<!-- Donate Modal -->
-<div id="donateModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <div class="modal-title">💝 Donate Us</div>
-      <button class="modal-close" onclick="closeModal('donateModal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <p><strong>CricStreamZone — The Ultimate Destination for All Sports, 100% Ad-Free!</strong></p>
-      
-      <p>We understand that in today's digital world, most apps show inappropriate and misleading ads while streaming sports which can negatively affect our hearts, minds, and faith.</p>
-      
-      <p>🕌 Out of fear of Allah and a commitment to ethics, we at CricStreamZone have chosen not to run a single ad. We aim to provide you with a clean, safe, and complete sports-watching experience.</p>
-      
-      <p>⚽🏏🎾 From cricket to football enjoy all kinds of sports in one single app!</p>
-      
-      <p>🤲 To keep this noble initiative running, we need your kind support. Support our developer team by giving a small donation help us sustain this service through a halal path.</p>
-      
-      <p>❤️ Your generosity is our inspiration. Let's build a fitna-free digital world of sports, seeking only the pleasure of Allah.</p>
-      
-      <p>🔗 <strong>Donate Now</strong> Your small contribution can mean a lot to us!</p>
-      
-      <p><strong>Send Via Binance Network</strong></p>
-      <p><strong>Donation Address:</strong></p>
-      <div class="donation-address" onclick="copyToClipboard('TNZT4o8EQT6HDLioo5P731MduwGAcGVCXo', 'Address copied!')">
-        TNZT4o8EQT6HDLioo5P731MduwGAcGVCXo
-      </div>
-      <p style="font-size: 12px; color: #888; text-align: center;">Click to copy address</p>
-      
-      <div class="qr-code">
-        <img src="https://i.postimg.cc/vThsxFGP/Screenshot-2025-07-30-08-31-05-695-edit-com-binance-dev.jpg" alt="QR Code" />
-        <p style="font-size: 12px; color: #888;">Scan QR Code to donate</p>
-      </div>
-    </div>
-  </div>
-</div>
 
 <nav>
   <div style="display: flex; align-items: center;">
@@ -932,6 +831,78 @@
   </div>
 </div>
 
+<!-- Copyright Modal -->
+<div id="copyrightModal" class="info-modal" onclick="closeCopyrightModal()">
+  <div class="info-content" onclick="event.stopPropagation();">
+    <button class="info-close" onclick="closeCopyrightModal()">✕</button>
+    <h3>⚖️ Copyright Information</h3>
+    <p style="line-height: 1.6; color: #ccc;">
+      CricStreamZone does not host or stream any channels directly.<br><br>
+      All streaming links provided in this application are freely available on the internet and sourced from third-party websites.<br><br>
+      We simply provide a convenient way to access those streams.<br><br>
+      All content is the copyright of their respective owners.
+    </p>
+  </div>
+</div>
+
+<!-- Contact Modal -->
+<div id="contactModal" class="info-modal" onclick="closeContactModal()">
+  <div class="info-content" onclick="event.stopPropagation();">
+    <button class="info-close" onclick="closeContactModal()">✕</button>
+    <h3>📧 Contact US</h3>
+    <p style="line-height: 1.6; color: #ccc; text-align: center;">
+      For any queries, suggestions, or support, feel free to contact us:
+    </p>
+    <div style="text-align: center; margin: 20px 0;">
+      <a href="mailto:cricstreamzonebd@gmail.com" style="
+        background: #0af;
+        color: #fff;
+        padding: 12px 20px;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-block;
+      ">📧 cricstreamzonebd@gmail.com</a>
+    </div>
+  </div>
+</div>
+
+<!-- Donate Modal -->
+<div id="donateModal" class="info-modal" onclick="closeDonateModal()">
+  <div class="info-content" onclick="event.stopPropagation();" style="max-height: 80%; overflow-y: auto;">
+    <button class="info-close" onclick="closeDonateModal()">✕</button>
+    <h3>💝 Donate Us</h3>
+    <div style="line-height: 1.6; color: #ccc;">
+      <p><strong>CricStreamZone — The Ultimate Destination for All Sports, 100% Ad-Free!</strong></p>
+      
+      <p>We understand that in today's digital world, most apps show inappropriate and misleading ads while streaming sports which can negatively affect our hearts, minds, and faith.</p>
+      
+      <p>🕌 Out of fear of Allah and a commitment to ethics, we at CricStreamZone have chosen not to run a single ad. We aim to provide you with a clean, safe, and complete sports-watching experience.</p>
+      
+      <p>⚽🏏🎾 From cricket to football enjoy all kinds of sports in one single app!</p>
+      
+      <p>🤲 To keep this noble initiative running, we need your kind support. Support our developer team by giving a small donation help us sustain this service through a halal path.</p>
+      
+      <p>❤️ Your generosity is our inspiration. Let's build a fitna-free digital world of sports, seeking only the pleasure of Allah.</p>
+      
+      <p><strong>🔗 Donate Now Your small contribution can mean a lot to us!</strong></p>
+      
+      <p><strong>Send Via Binance Network</strong></p>
+      <p><strong>Donation Address:</strong></p>
+      
+      <div class="copy-address" onclick="copyToClipboard('TNZT4o8EQT6HDLioo5P731MduwGAcGVCXo')">
+        TNZT4o8EQT6HDLioo5P731MduwGAcGVCXo
+        <div style="font-size: 10px; color: #888; margin-top: 5px;">Click to copy</div>
+      </div>
+      
+      <div class="qr-code">
+        <img src="https://i.postimg.cc/vThsxFGP/Screenshot-2025-07-30-08-31-05-695-edit-com-binance-dev.jpg" alt="Donation QR Code" />
+        <div style="font-size: 12px; color: #888; margin-top: 8px;">Scan QR Code to Donate</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Bottom tab buttons -->
 <div class="bottom-tab-btns">
   <button id="bottomLive" class="active">
@@ -963,136 +934,6 @@
 </div>
 
 <script>
-// Modal functions
-function openModal(modalId) {
-  document.getElementById(modalId).classList.add('active');
-}
-
-function closeModal(modalId) {
-  document.getElementById(modalId).classList.remove('active');
-}
-
-// Copy to clipboard function
-function copyToClipboard(text, message) {
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(() => {
-      showToast(message || 'Copied to clipboard!');
-    }).catch(() => {
-      fallbackCopyTextToClipboard(text, message);
-    });
-  } else {
-    fallbackCopyTextToClipboard(text, message);
-  }
-}
-
-function fallbackCopyTextToClipboard(text, message) {
-  const textArea = document.createElement("textarea");
-  textArea.value = text;
-  textArea.style.top = "0";
-  textArea.style.left = "0";
-  textArea.style.position = "fixed";
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-  
-  try {
-    document.execCommand('copy');
-    showToast(message || 'Copied to clipboard!');
-  } catch (err) {
-    showToast('Failed to copy');
-  }
-  
-  document.body.removeChild(textArea);
-}
-
-// Toast notification
-function showToast(message) {
-  const toast = document.createElement('div');
-  toast.textContent = message;
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #0af;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: 600;
-    z-index: 10000;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  `;
-  
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.style.opacity = '1';
-  }, 100);
-  
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => {
-      document.body.removeChild(toast);
-    }, 300);
-  }, 2000);
-}
-
-// Share app function
-function shareApp() {
-  const shareData = {
-    title: 'CricStreamZone - Live Sports Streaming',
-    text: 'Watch all sports live for free! 🏏⚽🎾 100% Ad-Free Experience',
-    url: 'https://cric-zone-com.vercel.app/'
-  };
-
-  if (navigator.share) {
-    navigator.share(shareData).catch(err => {
-      console.log('Error sharing:', err);
-      fallbackShare();
-    });
-  } else {
-    fallbackShare();
-  }
-}
-
-function fallbackShare() {
-  const shareText = `🏏 CricStreamZone - Live Sports Streaming 🏏\n\nWatch all sports live for free! ⚽🎾🏀\n✅ 100% Ad-Free Experience\n✅ HD Quality Streams\n✅ All Sports in One App\n\nDownload now: https://cric-zone-com.vercel.app/\n\nJoin Telegram: https://t.me/CricStreamZone`;
-  
-  copyToClipboard(shareText, 'Share text copied! You can paste it anywhere.');
-}
-
-// Exit app function
-function exitApp() {
-  if (confirm('Are you sure you want to exit CricStreamZone?')) {
-    if (navigator.app && navigator.app.exitApp) {
-      navigator.app.exitApp();
-    } else if (navigator.device && navigator.device.exitApp) {
-      navigator.device.exitApp();
-    } else {
-      window.close();
-    }
-  }
-}
-
-// Close modals when clicking outside
-document.addEventListener('click', function(e) {
-  if (e.target.classList.contains('modal')) {
-    e.target.classList.remove('active');
-  }
-});
-
-// Close modals with Escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    const activeModal = document.querySelector('.modal.active');
-    if (activeModal) {
-      activeModal.classList.remove('active');
-    }
-  }
-});
-
 // Search functionality - Updated
 function toggleSearch() {
   const searchInput = document.getElementById('search');
@@ -1156,6 +997,149 @@ function toggleDrawer() {
   const overlay = document.getElementById('drawerOverlay');  
   drawer.classList.toggle('open');  
   overlay.classList.toggle('show');  
+}
+
+// New Modal Functions
+function openCopyrightModal() {
+  document.getElementById('copyrightModal').classList.add('active');
+}
+
+function closeCopyrightModal() {
+  document.getElementById('copyrightModal').classList.remove('active');
+}
+
+function openContactModal() {
+  document.getElementById('contactModal').classList.add('active');
+}
+
+function closeContactModal() {
+  document.getElementById('contactModal').classList.remove('active');
+}
+
+function openDonateModal() {
+  document.getElementById('donateModal').classList.add('active');
+}
+
+function closeDonateModal() {
+  document.getElementById('donateModal').classList.remove('active');
+}
+
+// Copy to clipboard function
+function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('Address copied to clipboard!');
+    }).catch(() => {
+      fallbackCopyTextToClipboard(text);
+    });
+  } else {
+    fallbackCopyTextToClipboard(text);
+  }
+}
+
+function fallbackCopyTextToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.top = "0";
+  textArea.style.left = "0";
+  textArea.style.position = "fixed";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    showToast('Address copied to clipboard!');
+  } catch (err) {
+    showToast('Failed to copy address');
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+// Toast notification
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0af;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  `;
+  
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '1';
+  }, 100);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      document.body.removeChild(toast);
+    }, 300);
+  }, 2000);
+}
+
+// Share App function
+function shareApp() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'CricStreamZone - Live Sports Streaming',
+      text: 'Watch live cricket, football and all sports for free! 100% Ad-free experience.',
+      url: 'https://cric-zone-com.vercel.app/'
+    }).catch(console.error);
+  } else {
+    // Fallback for browsers that don't support Web Share API
+    const shareText = 'Check out CricStreamZone - Live Sports Streaming! Watch live cricket, football and all sports for free! 100% Ad-free experience. https://cric-zone-com.vercel.app/';
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareText).then(() => {
+        showToast('Share link copied to clipboard!');
+      });
+    } else {
+      // Further fallback
+      const textArea = document.createElement('textarea');
+      textArea.value = shareText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showToast('Share link copied to clipboard!');
+    }
+  }
+}
+
+// Exit App function
+function exitApp() {
+  if (confirm('Are you sure you want to exit CricStreamZone?')) {
+    // For PWA/Mobile apps
+    if (window.navigator && window.navigator.app) {
+      window.navigator.app.exitApp();
+    } 
+    // For Cordova/PhoneGap
+    else if (window.device && window.device.exitApp) {
+      window.device.exitApp();
+    }
+    // For browsers
+    else {
+      window.close();
+      // If window.close() doesn't work, redirect to a blank page
+      setTimeout(() => {
+        window.location.href = 'about:blank';
+      }, 100);
+    }
+  }
 }
 
 // Server modal functions
@@ -1781,6 +1765,12 @@ document.addEventListener('keydown', function(e) {
         toggleSearch();
       } else if (document.getElementById('serverModal').classList.contains('active')) {
         closeServerModal();
+      } else if (document.getElementById('copyrightModal').classList.contains('active')) {
+        closeCopyrightModal();
+      } else if (document.getElementById('contactModal').classList.contains('active')) {
+        closeContactModal();
+      } else if (document.getElementById('donateModal').classList.contains('active')) {
+        closeDonateModal();
       }
     }
   }
@@ -1910,26 +1900,85 @@ window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
 updateNetworkStatus();
 
-// Prevent double tap zoom on iOS
-let lastTouchEnd = 0;
-document.addEventListener('touchend', function (event) {
-  const now = (new Date()).getTime();
-  if (now - lastTouchEnd <= 300) {
-    event.preventDefault();
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+  // Close copyright modal
+  if (e.target === document.getElementById('copyrightModal')) {
+    closeCopyrightModal();
   }
-  lastTouchEnd = now;
-}, false);
-
-// Handle orientation change
-window.addEventListener('orientationchange', function() {
-  setTimeout(() => {
-    if (document.getElementById('subTabs').style.display === 'block') {
-      renderMatches(currentSubTab);
-    }
-  }, 500);
+  
+  // Close contact modal
+  if (e.target === document.getElementById('contactModal')) {
+    closeContactModal();
+  }
+  
+  // Close donate modal
+  if (e.target === document.getElementById('donateModal')) {
+    closeDonateModal();
+  }
 });
 
-// Performance optimization - Lazy load images
+// Prevent body scroll when modals are open
+function preventBodyScroll(prevent) {
+  if (prevent) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+}
+
+// Update modal functions to prevent body scroll
+const originalOpenCopyrightModal = openCopyrightModal;
+openCopyrightModal = function() {
+  originalOpenCopyrightModal();
+  preventBodyScroll(true);
+};
+
+const originalCloseCopyrightModal = closeCopyrightModal;
+closeCopyrightModal = function() {
+  originalCloseCopyrightModal();
+  preventBodyScroll(false);
+};
+
+const originalOpenContactModal = openContactModal;
+openContactModal = function() {
+  originalOpenContactModal();
+  preventBodyScroll(true);
+};
+
+const originalCloseContactModal = closeContactModal;
+closeContactModal = function() {
+  originalCloseContactModal();
+  preventBodyScroll(false);
+};
+
+const originalOpenDonateModal = openDonateModal;
+openDonateModal = function() {
+  originalOpenDonateModal();
+  preventBodyScroll(true);
+};
+
+const originalCloseDonateModal = closeDonateModal;
+closeDonateModal = function() {
+  originalCloseDonateModal();
+  preventBodyScroll(false);
+};
+
+// Add vibration feedback for mobile devices
+function vibrate(pattern = [50]) {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(pattern);
+  }
+}
+
+// Add vibration to button clicks
+document.addEventListener('click', function(e) {
+  if (e.target.matches('button, .match, a[href="#"]')) {
+    vibrate([30]);
+  }
+});
+
+// Performance optimization: Lazy load images
 function lazyLoadImages() {
   const images = document.querySelectorAll('img[loading="lazy"]');
   
@@ -1949,36 +1998,38 @@ function lazyLoadImages() {
   }
 }
 
-// Call lazy load on DOM ready
-document.addEventListener('DOMContentLoaded', lazyLoadImages);
+// Call lazy load function
+lazyLoadImages();
 
-// Add pull to refresh functionality
+// Add error handling for images
+document.addEventListener('error', function(e) {
+  if (e.target.tagName === 'IMG') {
+    e.target.src = 'https://via.placeholder.com/35x35/333/fff?text=?';
+  }
+}, true);
+
+// Add pull-to-refresh functionality
 let startY = 0;
 let currentY = 0;
 let pullDistance = 0;
 let isPulling = false;
-let refreshThreshold = 80;
 
 document.addEventListener('touchstart', function(e) {
   if (window.scrollY === 0) {
-    startY = e.touches[0].pageY;
+    startY = e.touches[0].clientY;
     isPulling = true;
   }
 }, { passive: true });
 
 document.addEventListener('touchmove', function(e) {
   if (isPulling && window.scrollY === 0) {
-    currentY = e.touches[0].pageY;
+    currentY = e.touches[0].clientY;
     pullDistance = currentY - startY;
     
-    if (pullDistance > 0) {
+    if (pullDistance > 0 && pullDistance < 100) {
       e.preventDefault();
-      
-      // Visual feedback for pull to refresh
-      if (pullDistance > refreshThreshold) {
-        document.body.style.transform = `translateY(${Math.min(pullDistance * 0.5, 50)}px)`;
-        document.body.style.transition = 'transform 0.1s ease';
-      }
+      document.body.style.transform = `translateY(${pullDistance * 0.5}px)`;
+      document.body.style.transition = 'none';
     }
   }
 }, { passive: false });
@@ -1986,111 +2037,24 @@ document.addEventListener('touchmove', function(e) {
 document.addEventListener('touchend', function(e) {
   if (isPulling) {
     isPulling = false;
-    
-    if (pullDistance > refreshThreshold) {
-      // Trigger refresh
-      showToast('🔄 Refreshing matches...');
-      
-      fetch(matchesApi)
-        .then(res => res.json())
-        .then(data => {
-          matches = data.matches || [];
-          renderMatches(currentSubTab);
-          showToast('✅ Matches updated!');
-        })
-        .catch(e => {
-          showToast('❌ Failed to refresh');
-        });
-    }
-    
-    // Reset visual state
-    document.body.style.transform = '';
     document.body.style.transition = 'transform 0.3s ease';
-    setTimeout(() => {
-      document.body.style.transition = '';
-    }, 300);
+    document.body.style.transform = 'translateY(0)';
+    
+    if (pullDistance > 60) {
+      // Trigger refresh
+      showToast('Refreshing matches...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    }
     
     pullDistance = 0;
   }
 }, { passive: true });
 
-// Add haptic feedback for supported devices
-function hapticFeedback(type = 'light') {
-  if ('vibrate' in navigator) {
-    switch(type) {
-      case 'light':
-        navigator.vibrate(10);
-        break;
-      case 'medium':
-        navigator.vibrate(20);
-        break;
-      case 'heavy':
-        navigator.vibrate(50);
-        break;
-    }
-  }
-}
-
-// Add haptic feedback to button clicks
-document.addEventListener('click', function(e) {
-  if (e.target.matches('button, .match, a')) {
-    hapticFeedback('light');
-  }
-});
-
-// Memory management - Clear unused intervals and observers
-window.addEventListener('beforeunload', function() {
-  clearIntervals();
-});
-
-// Add error boundary for better error handling
-window.addEventListener('error', function(e) {
-  console.error('Global error:', e.error);
-  
-  // Show user-friendly error message
-  const errorToast = document.createElement('div');
-  errorToast.textContent = 'Something went wrong. Please refresh the page.';
-  errorToast.style.cssText = `
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #ff4444;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-size: 14px;
-    font-weight: 600;
-    z-index: 10000;
-  `;
-  
-  document.body.appendChild(errorToast);
-  
-  setTimeout(() => {
-    document.body.removeChild(errorToast);
-  }, 5000);
-});
-
-// Initialize app
-document.addEventListener('DOMContentLoaded', function() {
-  // Set initial theme
-  document.body.style.backgroundColor = '#111';
-  
-  // Preload critical images
-  const criticalImages = [
-    'https://i.postimg.cc/3rPWWckN/icon-192.png',
-    'https://i.postimg.cc/BvWg87Rd/videocam-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png',
-    'https://i.postimg.cc/K8JDvvxs/live-tv-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png',
-    'https://i.postimg.cc/YC472jwd/radio-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png'
-  ];
-  
-  criticalImages.forEach(src => {
-    const img = new Image();
-    img.src = src;
-  });
-});
+console.log('CricStreamZone loaded successfully! 🏏');
 
 </script>
 
 </body>
-    </html>
+</html>
