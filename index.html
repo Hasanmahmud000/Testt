@@ -4,10 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CricStreamZone - Live Matches & Upcoming</title>
-  
-  <!-- OneSignal SDK -->
-  <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js"></script>
   <style>
     /* Existing styles... */
@@ -65,10 +61,9 @@
       left: -600px;
       width: 280px;
       height: 100%;
-      background: #111;
+      background: #000;
       z-index: 2000;
       padding: 20px;
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.7);
       transition: left 0.3s ease;
     }
     #drawer.open {
@@ -87,7 +82,7 @@
       border-radius: 6px;
       transition: background 0.2s ease;
       font-weight: 600;
-      background: #222;
+      background: #000;
     }
     #drawer a:hover {
       background: #0af;
@@ -95,7 +90,7 @@
     }
     #drawerClose {
       background: none;
-      color: #ccc;
+      color: #fff;
       border: none;
       font-size: 22px;
       position: absolute;
@@ -282,27 +277,26 @@
     }
 
     .server-content {
-  background: #222;
-  border-radius: 50px;
-  padding: 16px;
-  max-width: 80%;
-  width: 280px;
-  max-height: 80%;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  
-  /* স্ক্রলবার সম্পূর্ণ লুকানো */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-}
+      background: #222;
+      border-radius: 50px;
+      padding: 16px;
+      max-width: 80%;
+      width: 280px;
+      max-height: 80%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      
+      /* স্ক্রলবার সম্পূর্ণ লুকানো */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+    }
 
-/* Webkit browsers এর জন্য স্ক্রলবার লুকানো */
-.server-content::-webkit-scrollbar {
-  display: none;
-}
-
+    /* Webkit browsers এর জন্য স্ক্রলবার লুকানো */
+    .server-content::-webkit-scrollbar {
+      display: none;
+    }
 
     .server-list {
       color: #fff;
@@ -333,41 +327,38 @@
       color: #0af;
     }
 
- /* Modified sub-tab styles */
-.sub-tab-btns {
-  display: flex;
-  justify-content: space-around; /* Distribute space evenly */
-  padding: 10px;
-  background: #222;
-  flex-wrap: nowrap; /* Prevent wrapping */
-  overflow-x: auto; /* Allow horizontal scrolling if needed */
-}
+    /* Modified sub-tab styles */
+    .sub-tab-btns {
+      display: flex;
+      justify-content: space-around; /* Distribute space evenly */
+      padding: 10px;
+      background: #222;
+      flex-wrap: nowrap; /* Prevent wrapping */
+      overflow-x: auto; /* Allow horizontal scrolling if needed */
+    }
 
-.sub-tab-btns button {
-  flex: 1; /* Equal width for buttons */
-  min-width: 85.5px; /* Minimum width for buttons */
-  max-width: 120px; /* Maximum width for buttons */
-  padding: 8px 5px;
-  border: none;
-  border-radius: 20px;
-  background: #333;
-  color: #fff;
-  font-weight: 600;
-  font-size: 14px;
-  text-align: center;
-  white-space: nowrap; /* Prevent text wrapping */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
+    .sub-tab-btns button {
+      flex: 1; /* Equal width for buttons */
+      min-width: 85.5px; /* Minimum width for buttons */
+      max-width: 120px; /* Maximum width for buttons */
+      padding: 8px 5px;
+      border: none;
+      border-radius: 20px;
+      background: #333;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
+      white-space: nowrap; /* Prevent text wrapping */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: all 0.3s ease;
+    }
 
-.sub-tab-btns .active {
-  background: #0af;
-  transform: scale(1.05);
-  box-shadow: 0 0 px rgba(0,170,255,0.5);
-}
-
+    .sub-tab-btns .active {
+      background: #0af;
+      transform: scale(1.05);
+    }
 
     /* Bottom tab styles */
     .bottom-tab-btns {
@@ -378,7 +369,6 @@
       display: flex;
       justify-content: space-around;
       padding: 10px 0;
-      box-shadow: 0 -2px 8px rgba(0,0,0,0.8);
       z-index: 1000;
     }
     .bottom-tab-btns button {
@@ -411,8 +401,7 @@
       background: linear-gradient(135deg, #1e1e2e, #2a2a3a);
       border-radius: 12px;
       margin-bottom: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.3s ease;
       cursor: pointer;
       overflow: hidden;
       border: 1px solid #333;
@@ -565,7 +554,6 @@
       background-size: 200% 200%;
       border-radius: 15px;
       animation: gradientPulse 3s ease infinite, blinkOpacity 1.5s infinite;
-      box-shadow: 0 0 8px #ff003c;
       user-select: none;
       text-transform: uppercase;
     }
@@ -581,30 +569,29 @@
 
     /* Server List Modal */
     .server-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  z-index: 9999;
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 9999;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
 
-.server-modal.active {
-  display: flex;
-}
+    .server-modal.active {
+      display: flex;
+    }
 
-.server-content {
-  background: #222;
-  border: 1px solid #333;
-  padding: 15px;
-  width: 280px;
-  border-radius: 20px;
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-}
+    .server-content {
+      background: #222;
+      border: 1px solid #333;
+      padding: 15px;
+      width: 280px;
+      border-radius: 20px;
+    }
 
     .server-header {
       display: flex;
@@ -616,11 +603,11 @@
     }
 
     .server-title {
-    color: #0af;
-    text-align: center;
-    margin-bottom: 15px;
-    font-weight: bold;
-  }
+      color: #0af;
+      text-align: center;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
 
     .server-close {
       background: none;
@@ -631,45 +618,43 @@
     }
     
     .server-header-text {
-  color: #fff;
-  margin-bottom: 10px;
-  text-align: left;
-  font-weight: bold;
-  width: 100%;
-}
+      color: #fff;
+      margin-bottom: 10px;
+      text-align: left;
+      font-weight: bold;
+      width: 100%;
+    }
 
     .server-list {
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  box-shadow: none; /* শ্যাডো সরানো হলো */
-}
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+    }
 
     .server-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .server-item {
-    color: white;
-    padding: 12px;
-    text-align: left;
-    font-size: 15px;
-    /* Complete removal of inner box styling */
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    text-decoration: none !important;
-  }
-  
-  .server-item:hover {
-    background: #333 !important;
-  }
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .server-item {
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-size: 15px;
+      /* Complete removal of inner box styling */
+      background: transparent !important;
+      border: none !important;
+      text-decoration: none !important;
+    }
+    
+    .server-item:hover {
+      background: #333 !important;
+    }
 
     /* TV & FM separate section */
     #tv-section, #fm-section {
@@ -679,135 +664,125 @@
       text-align: center;
     }
 
-    /* Notification Permission Popup */
-    .notification-popup {
+    /* Modal Styles for Copyright, Contact, Donate */
+    .modal {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       background: rgba(0,0,0,0.8);
-      z-index: 10000;
+      z-index: 9999;
       display: none;
       justify-content: center;
       align-items: center;
     }
 
-    .notification-popup.show {
+    .modal.active {
       display: flex;
     }
 
-    .notification-content {
-      background: #222;
-      padding: 25px;
+    .modal-content {
+      background: #000;
+      color: #fff;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      max-height: 80%;
       border-radius: 15px;
-      max-width: 90%;
-      width: 350px;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      border: 1px solid #333;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
 
-    .notification-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
+    .modal-content::-webkit-scrollbar {
+      display: none;
     }
 
-    .notification-title {
-      color: #0af;
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .notification-text {
-      color: #ccc;
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-
-    .notification-buttons {
+    .modal-header {
       display: flex;
-      gap: 10px;
-      justify-content: center;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
     }
 
-    .notification-btn {
+    .modal-title {
+      color: #0af;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .copy-address {
+      background: #222;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: monospace;
+      word-break: break-all;
+      cursor: pointer;
+      border: 1px solid #333;
+      text-align: center;
+    }
+
+    .copy-address:hover {
+      background: #333;
+    }
+
+    .qr-code {
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    .qr-code img {
+      max-width: 200px;
+      border-radius: 10px;
+    }
+
+    .donate-button {
+      background: #0af;
+      color: #fff;
       padding: 12px 20px;
       border: none;
       border-radius: 8px;
-      font-weight: 600;
+      font-weight: bold;
       cursor: pointer;
-      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 15px;
     }
 
-    .notification-btn.allow {
+    .contact-email {
       background: #0af;
       color: #fff;
-    }
-
-    .notification-btn.allow:hover {
-      background: #0099cc;
-    }
-
-    .notification-btn.later {
-      background: #444;
-      color: #ccc;
-    }
-
-    .notification-btn.later:hover {
-      background: #555;
-    }
-
-    /* Notification Status Indicator */
-    .notification-status {
-      position: fixed;
-      top: 70px;
-      right: 20px;
-      background: #333;
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      z-index: 1000;
-      display: none;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .notification-status.enabled {
-      background: #0af;
-      display: flex;
-    }
-
-    .notification-status.disabled {
-      background: #ff6b35;
-      display: flex;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 15px;
+      text-decoration: none;
+      display: block;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-
-<!-- Notification Permission Popup -->
-<div id="notificationPopup" class="notification-popup">
-  <div class="notification-content">
-    <div class="notification-icon">🔔</div>
-    <div class="notification-title">Stay Updated!</div>
-    <div class="notification-text">
-      Get instant notifications for live matches, scores, and exclusive updates. Never miss a moment!
-    </div>
-    <div class="notification-buttons">
-      <button class="notification-btn allow" onclick="enableNotifications()">Allow Notifications</button>
-      <button class="notification-btn later" onclick="closeNotificationPopup()">Maybe Later</button>
-    </div>
-  </div>
-</div>
-
-<!-- Notification Status Indicator -->
-<div id="notificationStatus" class="notification-status">
-  <span id="notificationStatusText">🔔 Notifications Enabled</span>
-</div>
 
 <!-- Drawer / Side Menu -->
 <div id="drawer">
@@ -825,7 +800,12 @@
   <a href="#" onclick="showCategory('live'); toggleDrawer();">🏏 Live Matches</a>
   <a href="#" onclick="showCategory('tv'); toggleDrawer();">📺 Live TV</a>
   <a href="#" onclick="showCategory('fm'); toggleDrawer();">📻 FM Radio</a>
-  <a href="#" onclick="toggleNotificationSettings(); toggleDrawer();">🔔 Notification Settings</a>
+  <a href="https://cric-zone-com.vercel.app/" target="_blank">🌐 Website</a>
+  <a href="#" onclick="openModal('copyrightModal'); toggleDrawer();">© Copyright</a>
+  <a href="#" onclick="openModal('contactModal'); toggleDrawer();">📧 Contact Us</a>
+  <a href="#" onclick="openModal('donateModal'); toggleDrawer();">💰 Donate Us</a>
+  <a href="#" onclick="shareApp(); toggleDrawer();">📤 Share App</a>
+  <a href="#" onclick="exitApp(); toggleDrawer();">🚪 Exit</a>
 </div>
 <div id="drawerOverlay" onclick="toggleDrawer()"></div>
 
@@ -879,6 +859,71 @@
   </div>
 </div>
 
+<!-- Copyright Modal -->
+<div id="copyrightModal" class="modal" onclick="closeModal('copyrightModal')">
+  <div class="modal-content" onclick="event.stopPropagation();">
+    <div class="modal-header">
+      <div class="modal-title">Copyright Notice</div>
+      <button class="modal-close" onclick="closeModal('copyrightModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>CricStreamZone does not host or stream any channels directly.</p>
+      <p>All streaming links provided in this application are freely available on the internet and sourced from third-party websites.</p>
+      <p>We simply provide a convenient way to access those streams.</p>
+      <p>All content is the copyright of their respective owners.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Contact Modal -->
+<div id="contactModal" class="modal" onclick="closeModal('contactModal')">
+  <div class="modal-content" onclick="event.stopPropagation();">
+    <div class="modal-header">
+      <div class="modal-title">Contact Us</div>
+      <button class="modal-close" onclick="closeModal('contactModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>For any queries, suggestions, or support, feel free to contact us:</p>
+      <a href="mailto:cricstreamzonebd@gmail.com" class="contact-email">📧 cricstreamzonebd@gmail.com</a>
+    </div>
+  </div>
+</div>
+
+<!-- Donate Modal -->
+<div id="donateModal" class="modal" onclick="closeModal('donateModal')">
+  <div class="modal-content" onclick="event.stopPropagation();">
+    <div class="modal-header">
+      <div class="modal-title">Donate Us</div>
+      <button class="modal-close" onclick="closeModal('donateModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <h3>CricStreamZone — The Ultimate Destination for All Sports, 100% Ad-Free!</h3>
+      
+      <p>We understand that in today's digital world, most apps show inappropriate and misleading ads while streaming sports which can negatively affect our hearts, minds, and faith.</p>
+      
+      <p>🕌 Out of fear of Allah and a commitment to ethics, we at CricStreamZone have chosen not to run a single ad. We aim to provide you with a clean, safe, and complete sports-watching experience.</p>
+      
+      <p>⚽🏏🎾 From cricket to football enjoy all kinds of sports in one single app!</p>
+      
+      <p>🤲 To keep this noble initiative running, we need your kind support. Support our developer team by giving a small donation help us sustain this service through a halal path.</p>
+      
+      <p>❤️ Your generosity is our inspiration. Let's build a fitna-free digital world of sports, seeking only the pleasure of Allah.</p>
+      
+      <p>🔗 Donate Now Your small contribution can mean a lot to us!</p>
+      
+      <h4>Send Via Binance Network</h4>
+      <p>Donation Address:</p>
+      <div class="copy-address" onclick="copyToClipboard('TNZT4o8EQT6HDLioo5P731MduwGAcGVCXo')">
+        TNZT4o8EQT6HDLioo5P731MduwGAcGVCXo
+      </div>
+      
+      <div class="qr-code">
+        <img src="https://i.postimg.cc/vThsxFGP/Screenshot-2025-07-30-08-31-05-695-edit-com-binance-dev.jpg" alt="QR Code" />
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Bottom tab buttons -->
 <div class="bottom-tab-btns">
   <button id="bottomLive" class="active">
@@ -890,7 +935,7 @@
     TV
   </button>
   <button id="bottomFM">
-    <img src="https://i.postimg.cc/YC472jwd/radio-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png" alt="FM Icon" style="vertical-align: middle; margin-right: 6px;" />
+    <img src="https://i.postimg.cc/YC472jwd/radio-24dp-E3-E3-E3-FILL0-wght400-GRAD0-opsz24.png" alt="FM Icon" style="vertical-align: middle; margin-right: 6px;"/>
     FM
   </button>
 </div>
@@ -898,7 +943,7 @@
 <!-- Telegram Join Popup -->
 <div id="telegramPopup" style="display:none;">
   <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000000aa; z-index:9999; display:flex; align-items:center; justify-content:center;">
-    <div style="background:#222; padding:20px 25px; border-radius:12px; max-width:90%; width:340px; text-align:center; box-shadow:0 0 10px #000;">
+    <div style="background:#222; padding:20px 25px; border-radius:12px; max-width:90%; width:340px; text-align:center;">
       <h3 style="color:#0af; margin-bottom:10px;">📣 Join Our Telegram</h3>
       <p style="color:#ccc; font-size:14px;">🔔 For live match updates, instant scores, and exclusive stream links — Join our official Telegram channel now! 📲 Download the NS Player app for smooth, uninterrupted streaming.</p>
       <div style="margin-top:15px;">
@@ -910,162 +955,6 @@
 </div>
 
 <script>
-// OneSignal Configuration
-window.OneSignal = window.OneSignal || [];
-
-// Initialize OneSignal
-OneSignal.push(function() {
-  OneSignal.init({
-    appId: "8305d6bc-7596-4ac0-807b-43d2ae7d9ef8",
-    safari_web_id: "web.onesignal.auto.18140f72-7e1a-4b50-9ca8-2a3f0f8f6c8e",
-    notifyButton: {
-      enable: false,
-    },
-    allowLocalhostAsSecureOrigin: true,
-    autoRegister: false,
-    autoResubscribe: true,
-    welcomeNotification: {
-      disable: true
-    },
-    promptOptions: {
-      slidedown: {
-        enabled: false
-      },
-      customlink: {
-        enabled: false
-      }
-    }
-  });
-
-  // Check notification permission status
-  OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-    updateNotificationStatus(isEnabled);
-  });
-
-  // Handle notification permission changes
-  OneSignal.on('subscriptionChange', function (isSubscribed) {
-    updateNotificationStatus(isSubscribed);
-    if (isSubscribed) {
-      console.log("User subscribed to notifications");
-      showNotificationMessage("🔔 Notifications enabled! You'll get live match updates.", "success");
-    }
-  });
-
-  // Handle notification clicks
-  OneSignal.on('notificationClick', function (event) {
-    console.log("Notification clicked:", event);
-    // Focus the window when notification is clicked
-    window.focus();
-  });
-});
-
-// Notification Functions
-function updateNotificationStatus(isEnabled) {
-  const statusEl = document.getElementById('notificationStatus');
-  const statusText = document.getElementById('notificationStatusText');
-  
-  if (isEnabled) {
-    statusEl.className = 'notification-status enabled';
-    statusText.textContent = '🔔 Notifications Enabled';
-    setTimeout(() => {
-      statusEl.style.display = 'none';
-    }, 3000);
-  } else {
-    statusEl.className = 'notification-status disabled';
-    statusText.textContent = '🔕 Notifications Disabled';
-  }
-}
-
-function showNotificationPopup() {
-  const popup = document.getElementById('notificationPopup');
-  popup.classList.add('show');
-}
-
-function closeNotificationPopup() {
-  const popup = document.getElementById('notificationPopup');
-  popup.classList.remove('show');
-  localStorage.setItem('notificationPromptShown', 'true');
-}
-
-function enableNotifications() {
-  OneSignal.push(function() {
-    OneSignal.registerForPushNotifications({
-      modalPrompt: true
-    }).then(function() {
-      console.log("Push notification registration successful");
-      closeNotificationPopup();
-    }).catch(function(error) {
-      console.error("Push notification registration failed:", error);
-      showNotificationMessage("❌ Failed to enable notifications. Please try again.", "error");
-    });
-  });
-}
-
-function toggleNotificationSettings() {
-  OneSignal.push(function() {
-    OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-      if (isEnabled) {
-        // Show options to disable
-        if (confirm("Notifications are currently enabled. Do you want to disable them?")) {
-          OneSignal.setSubscription(false);
-          showNotificationMessage("🔕 Notifications disabled.", "info");
-        }
-      } else {
-        // Show options to enable
-        enableNotifications();
-      }
-    });
-  });
-}
-
-function showNotificationMessage(message, type) {
-  const messageEl = document.createElement('div');
-  messageEl.innerHTML = message;
-  messageEl.style.cssText = `
-    position: fixed;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: ${type === 'success' ? '#0af' : type === 'error' ? '#ff6b35' : '#333'};
-    color: white;
-    padding: 12px 20px;
-    border-radius: 25px;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 10001;
-    font-size: 14px;
-    max-width: 90%;
-    text-align: center;
-  `;
-  
-  document.body.appendChild(messageEl);
-  
-  setTimeout(() => {
-    messageEl.style.opacity = '0';
-    messageEl.style.transform = 'translateX(-50%) translateY(-20px)';
-    messageEl.style.transition = 'all 0.3s ease';
-    setTimeout(() => {
-      if (messageEl.parentNode) {
-        messageEl.parentNode.removeChild(messageEl);
-      }
-    }, 300);
-  }, 4000);
-}
-
-// Auto-show notification popup after 10 seconds if not shown before
-setTimeout(() => {
-  const alreadyShown = localStorage.getItem('notificationPromptShown');
-  if (!alreadyShown) {
-    OneSignal.push(function() {
-      OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-        if (!isEnabled) {
-          showNotificationPopup();
-        }
-      });
-    });
-  }
-}, 10000);
-
 // Search functionality - Updated
 function toggleSearch() {
   const searchInput = document.getElementById('search');
@@ -1129,6 +1018,67 @@ function toggleDrawer() {
   const overlay = document.getElementById('drawerOverlay');  
   drawer.classList.toggle('open');  
   overlay.classList.toggle('show');  
+}
+
+// Modal functions
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add('active');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// Copy to clipboard function
+function copyToClipboard(text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Address copied to clipboard!');
+    });
+  } else {
+    // Fallback for older browsers
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    alert('Address copied to clipboard!');
+  }
+}
+
+// Share app function
+function shareApp() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'CricStreamZone - Live Sports Streaming',
+      text: 'Watch live cricket and sports matches for free!',
+      url: 'https://cric-zone-com.vercel.app/'
+    });
+  } else {
+    // Fallback for browsers that don't support Web Share API
+    const shareText = 'Check out CricStreamZone - Live Sports Streaming: https://cric-zone-com.vercel.app/';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareText);
+      alert('Share link copied to clipboard!');
+    } else {
+      alert('Share: https://cric-zone-com.vercel.app/');
+    }
+  }
+}
+
+// Exit app function
+function exitApp() {
+  if (confirm('Are you sure you want to exit?')) {
+    if (navigator.app && navigator.app.exitApp) {
+      navigator.app.exitApp();
+    } else if (window.close) {
+      window.close();
+    } else {
+      // For PWA or browsers that don't allow closing
+      window.location.href = 'about:blank';
+    }
+  }
 }
 
 // Server modal functions
@@ -1295,7 +1245,6 @@ function renderMatches(type = 'live') {
         padding: 30px 20px;  
         background: #1e1e1e;  
         border-radius: 14px;  
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);  
         color: #ccc;  
         font-family: 'Segoe UI', sans-serif;  
         font-size: 1.25rem;  
@@ -1346,7 +1295,7 @@ function renderMatches(type = 'live') {
       statusContent = `<div id="comingSoonAnim${i}" style="width: 60px; height: 60px;"></div>`;
     } else if (status === 'finished') {
       leftContent = `<div class="match-time-date">${dateStr} ${timeStr}</div>`;
-      statusContent = `<div class="finished-status">Match Ended</div>`;
+      statusContent = `<div class="status">Match Ended</div>`;
     } else if (type === 'today') {
       leftContent = `<div class="match-time-date">${dateStr} ${timeStr}</div>`;
       statusContent = `<div class="countdown-text" id="cd${type}${i}"></div>`;
@@ -1422,51 +1371,51 @@ function renderMatches(type = 'live') {
     }
     
     // Timer intervals
-    if (status === 'live' || status === 'coming_soon') {  
-      intervals.push(setInterval(() => {  
-        const now = getNow();
-        const matchTime = new Date(m.MatchTime);
-        const cdEl = div.querySelector(`#cd${type}${i}`);  
+if (status === 'live' || status === 'coming_soon') {  
+  intervals.push(setInterval(() => {  
+    const now = getNow();
+    const matchTime = new Date(m.MatchTime);
+    const cdEl = div.querySelector(`#cd${type}${i}`);  
+    
+    if (cdEl) {  
+      const diffLive = now - matchTime;  
+      cdEl.innerText = formatCountUp(Math.abs(diffLive));  
+    }
+    
+    // Check if match transitions from coming soon to live
+    if (now >= matchTime && status === 'coming_soon') {
+      const comingSoonContainer = div.querySelector(`#comingSoonAnim${i}`);
+      
+      if (comingSoonContainer) {
+        comingSoonContainer.innerHTML = '';
+        comingSoonContainer.id = `liveAnim${i}`;
         
-        if (cdEl) {  
-          const diffLive = now - matchTime;  
-          cdEl.innerText = formatCountUp(Math.abs(diffLive));  
-        }
+        bodymovin.loadAnimation({  
+          container: comingSoonContainer,  
+          renderer: 'svg',  
+          loop: true,  
+          autoplay: true,  
+          path: 'https://raw.githubusercontent.com/Hasanmahmud000/HasanTv/refs/heads/main/live-icon.json'  
+        });
         
-        // Check if match transitions from coming soon to live
-        if (now >= matchTime && status === 'coming_soon') {
-          const comingSoonContainer = div.querySelector(`#comingSoonAnim${i}`);
-          
-          if (comingSoonContainer) {
-            comingSoonContainer.innerHTML = '';
-            comingSoonContainer.id = `liveAnim${i}`;
-            
-            bodymovin.loadAnimation({  
-              container: comingSoonContainer,  
-              renderer: 'svg',  
-              loop: true,  
-              autoplay: true,  
-              path: 'https://raw.githubusercontent.com/Hasanmahmud000/HasanTv/refs/heads/main/live-icon.json'  
-            });
-            
-            comingSoonContainer.style.transition = 'all 0.5s ease';
-            comingSoonContainer.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-              comingSoonContainer.style.transform = 'scale(1)';
-            }, 500);
-          }
-        }
-        
-        // Check if match has ended
-        const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
-        if (now >= endTime && (status === 'live' || status === 'coming_soon')) {
-          // Automatically switch to Finished tab
-          setTimeout(() => {
-            showCategory('finished'); // Automatically switch to Finished tab
-          }, 1000);
-        }
-      }, 1000));  
-    } else if (type === 'today') {  
+        comingSoonContainer.style.transition = 'all 0.5s ease';
+        comingSoonContainer.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+          comingSoonContainer.style.transform = 'scale(1)';
+        }, 500);
+      }
+    }
+    
+    // Check if match has ended
+const endTime = new Date(matchTime.getTime() + (duration * 60 * 1000));
+if (now >= endTime && (status === 'live' || status === 'coming_soon')) {
+  // Automatically switch to Finished tab
+  setTimeout(() => {
+    showCategory('finished'); // Automatically switch to Finished tab
+  }, 1000);
+}
+  }, 1000));  
+} else if (type === 'today') {  
       intervals.push(setInterval(() => {  
         const cdEl = div.querySelector(`#cd${type}${i}`);  
         if (cdEl) {  
@@ -1585,10 +1534,10 @@ fetch(matchesApi)
   });
 
   // Update tab counts
-  document.getElementById("countLive").innerText = `(${liveCount})`;  
-  document.getElementById("countToday").innerText = `(${todayCount})`;  
-  document.getElementById("countUpcoming").innerText = `(${upcomingCount})`;
-  document.getElementById("countFinished").innerText = `(${finishedCount})`;
+document.getElementById("countLive").innerText = `(${liveCount})`;  
+document.getElementById("countToday").innerText = `(${todayCount})`;  
+document.getElementById("countUpcoming").innerText = `(${upcomingCount})`;
+document.getElementById("countFinished").innerText = `(${finishedCount})`;
 
   // Smart tab selection
   if (liveCount > 0) {
@@ -1633,7 +1582,6 @@ if ('serviceWorker' in navigator) {
         padding: 12px 16px;  
         border-radius: 30px;  
         font-weight: bold;  
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);  
         z-index: 9999;  
         cursor: pointer;  
       `;  
@@ -1739,7 +1687,7 @@ document.addEventListener('keydown', function(e) {
           const newTab = subTabs[currentIndex + 1];
           currentSubTab = newTab;
           setActiveSubTab(currentSubTab);
-          renderMatches(currentSubTab);
+          ches(currentSubTab);
         }
       }
     }
@@ -1754,6 +1702,9 @@ document.addEventListener('keydown', function(e) {
         toggleSearch();
       } else if (document.getElementById('serverModal').classList.contains('active')) {
         closeServerModal();
+      } else if (document.querySelector('.modal.active')) {
+        const activeModal = document.querySelector('.modal.active');
+        closeModal(activeModal.id);
       }
     }
   }
@@ -1883,192 +1834,277 @@ window.addEventListener('online', updateNetworkStatus);
 window.addEventListener('offline', updateNetworkStatus);
 updateNetworkStatus();
 
-// Push notification for new live matches
-let lastLiveMatchCount = 0;
+// Close modals when clicking outside
+document.addEventListener('click', function(e) {
+  // Close server modal
+  if (e.target.id === 'serverModal') {
+    closeServerModal();
+  }
+  
+  // Close other modals
+  if (e.target.classList.contains('modal')) {
+    closeModal(e.target.id);
+  }
+});
 
-function checkForNewLiveMatches() {
-  const now = new Date();
-  let currentLiveCount = 0;
+// Prevent body scroll when modal is open
+function preventBodyScroll() {
+  document.body.style.overflow = 'hidden';
+}
+
+function allowBodyScroll() {
+  document.body.style.overflow = 'auto';
+}
+
+// Update modal functions to handle body scroll
+const originalOpenModal = openModal;
+openModal = function(modalId) {
+  originalOpenModal(modalId);
+  preventBodyScroll();
+};
+
+const originalCloseModal = closeModal;
+closeModal = function(modalId) {
+  originalCloseModal(modalId);
+  allowBodyScroll();
+};
+
+const originalCloseServerModal = closeServerModal;
+closeServerModal = function() {
+  originalCloseServerModal();
+  allowBodyScroll();
+};
+
+const originalOpenServerModal = openServerModal;
+openServerModal = function(servers) {
+  originalOpenServerModal(servers);
+  preventBodyScroll();
+};
+
+// Handle back button for modals
+window.addEventListener('popstate', function(e) {
+  const activeModal = document.querySelector('.modal.active');
+  const activeServerModal = document.querySelector('.server-modal.active');
   
-  matches.forEach(m => {
-    const duration = parseInt(m.MatchDuration) || 360;
-    const status = getMatchStatus(m.MatchTime, duration, now);
-    
-    if (status === 'live' || status === 'coming_soon') {
-      currentLiveCount++;
-    }
-  });
+  if (activeModal) {
+    closeModal(activeModal.id);
+  } else if (activeServerModal) {
+    closeServerModal();
+  }
+});
+
+// Add vibration feedback for mobile devices
+function vibrate(pattern = [100]) {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(pattern);
+  }
+}
+
+// Add vibration to button clicks
+document.addEventListener('click', function(e) {
+  if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+    vibrate([50]);
+  }
+});
+
+// Performance optimization: Lazy load images
+function lazyLoadImages() {
+  const images = document.querySelectorAll('img[loading="lazy"]');
   
-  // Send notification if new live match detected
-  if (currentLiveCount > lastLiveMatchCount && lastLiveMatchCount > 0) {
-    OneSignal.push(function() {
-      OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-        if (isEnabled) {
-          // Find the new live match
-          const newLiveMatches = matches.filter(m => {
-            const duration = parseInt(m.MatchDuration) || 360;
-            const status = getMatchStatus(m.MatchTime, duration, now);
-            return status === 'live' || status === 'coming_soon';
-          });
-          
-          if (newLiveMatches.length > 0) {
-            const match = newLiveMatches[0];
-            showNotificationMessage(`🔴 LIVE: ${match.Team1} vs ${match.Team2} - ${match.Match}`, "success");
-          }
+  if ('IntersectionObserver' in window) {
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = img.src;
+          img.classList.remove('lazy');
+          imageObserver.unobserve(img);
         }
       });
     });
+
+    images.forEach(img => imageObserver.observe(img));
   }
-  
-  lastLiveMatchCount = currentLiveCount;
 }
 
-// Check for new live matches every minute
-setInterval(checkForNewLiveMatches, 60000);
+// Call lazy load on page load
+document.addEventListener('DOMContentLoaded', lazyLoadImages);
 
-// Background sync for notifications
-if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
-  navigator.serviceWorker.ready.then(function(registration) {
-    return registration.sync.register('background-sync');
-  }).catch(function(error) {
-    console.log('Background sync registration failed:', error);
-  });
-}
+// Add error handling for images
+document.addEventListener('error', function(e) {
+  if (e.target.tagName === 'IMG') {
+    e.target.src = 'https://via.placeholder.com/35x35/333/fff?text=?';
+  }
+}, true);
 
-// Visibility change handler for background notifications
-document.addEventListener('visibilitychange', function() {
-  if (document.hidden) {
-    // App is in background
-    console.log('App moved to background');
-  } else {
-    // App is in foreground
-    console.log('App moved to foreground');
-    // Refresh data when app comes back to foreground
-    if (document.getElementById('subTabs').style.display === 'block') {
-      fetch(matchesApi)
-        .then(res => res.json())
-        .then(data => {
-          matches = data.matches || [];
-          renderMatches(currentSubTab);
-        })
-        .catch(e => console.error('Foreground refresh error:', e));
+// Add pull-to-refresh functionality
+let startY = 0;
+let currentY = 0;
+let pullDistance = 0;
+let isPulling = false;
+
+document.addEventListener('touchstart', function(e) {
+  if (window.scrollY === 0) {
+    startY = e.touches[0].clientY;
+    isPulling = true;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', function(e) {
+  if (isPulling && window.scrollY === 0) {
+    currentY = e.touches[0].clientY;
+    pullDistance = currentY - startY;
+    
+    if (pullDistance > 0 && pullDistance < 100) {
+      e.preventDefault();
+      document.body.style.transform = `translateY(${pullDistance * 0.5}px)`;
+      document.body.style.opacity = 1 - (pullDistance * 0.01);
     }
   }
-});
+}, { passive: false });
 
-// Page focus/blur events for better background handling
-window.addEventListener('focus', function() {
-  console.log('Window focused');
-  // Update notification status when window gets focus
-  OneSignal.push(function() {
-    OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-      updateNotificationStatus(isEnabled);
-    });
-  });
-});
-
-window.addEventListener('blur', function() {
-  console.log('Window blurred');
-});
-
-// Handle page unload for cleanup
-window.addEventListener('beforeunload', function() {
-  clearIntervals();
-});
-
-// Error handling for OneSignal
-window.addEventListener('error', function(e) {
-  if (e.message && e.message.includes('OneSignal')) {
-    console.error('OneSignal error:', e);
-    showNotificationMessage("⚠️ Notification service temporarily unavailable", "error");
+document.addEventListener('touchend', function(e) {
+  if (isPulling) {
+    document.body.style.transform = '';
+    document.body.style.opacity = '';
+    
+    if (pullDistance > 80) {
+      // Trigger refresh
+      location.reload();
+    }
+    
+    isPulling = false;
+    pullDistance = 0;
   }
-});
+}, { passive: true });
 
-// Initialize notification check after page load
-window.addEventListener('load', function() {
+// Add installation prompt for PWA
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // Show install button after 10 seconds
   setTimeout(() => {
-    checkForNewLiveMatches();
-  }, 5000);
+    if (deferredPrompt && !localStorage.getItem('pwaInstallDismissed')) {
+      showInstallPrompt();
+    }
+  }, 10000);
 });
 
-// Handle notification permission changes in real-time
-if ('permissions' in navigator) {
-  navigator.permissions.query({name: 'notifications'}).then(function(result) {
-    result.addEventListener('change', function() {
-      OneSignal.push(function() {
-        OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-          updateNotificationStatus(isEnabled);
-        });
-      });
-    });
-  });
+function showInstallPrompt() {
+  const installBanner = document.createElement('div');
+  installBanner.innerHTML = `
+    <div style="
+      position: fixed;
+      bottom: 80px;
+      left: 10px;
+      right: 10px;
+      background: #0af;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      z-index: 9998;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+    ">
+      <span>📱 Install CricStreamZone for better experience!</span>
+      <div>
+        <button onclick="installPWA()" style="
+          background: white;
+          color: #0af;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 5px;
+          margin-right: 10px;
+          font-weight: bold;
+          cursor: pointer;
+        ">Install</button>
+        <button onclick="dismissInstall()" style="
+          background: transparent;
+          color: white;
+          border: 1px solid white;
+          padding: 8px 12px;
+          border-radius: 5px;
+          cursor: pointer;
+        ">Later</button>
+      </div>
+    </div>
+  `;
+  installBanner.id = 'install-banner';
+  document.body.appendChild(installBanner);
 }
 
-// Custom notification sound (optional)
-function playNotificationSound() {
-  try {
-    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-    audio.volume = 0.3;
-    audio.play().catch(e => console.log('Audio play failed:', e));
-  } catch (e) {
-    console.log('Audio creation failed:', e);
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      deferredPrompt = null;
+      dismissInstall();
+    });
   }
 }
 
-// Enhanced notification with sound
-function sendEnhancedNotification(title, message, icon) {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    const notification = new Notification(title, {
-      body: message,
-      icon: icon || 'https://i.postimg.cc/3rPWWckN/icon-192.png',
-      badge: 'https://i.postimg.cc/3rPWWckN/icon-192.png',
-      tag: 'cricstreamzone-match',
-      requireInteraction: true,
-      silent: false
-    });
-    
-    notification.onclick = function() {
-      window.focus();
-      notification.close();
-    };
-    
-    // Play sound
-    playNotificationSound();
-    
-    // Auto close after 10 seconds
-    setTimeout(() => {
-      notification.close();
-    }, 10000);
+function dismissInstall() {
+  const banner = document.getElementById('install-banner');
+  if (banner) {
+    banner.remove();
   }
+  localStorage.setItem('pwaInstallDismissed', 'true');
 }
 
-// Test notification function (for debugging)
-function testNotification() {
-  OneSignal.push(function() {
-    OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-      if (isEnabled) {
-        sendEnhancedNotification(
-          "🏏 CricStreamZone Test",
-          "Notifications are working perfectly!",
-          "https://i.postimg.cc/3rPWWckN/icon-192.png"
-        );
-        showNotificationMessage("✅ Test notification sent!", "success");
-      } else {
-        showNotificationMessage("❌ Notifications are disabled", "error");
-      }
-    });
+// Add app shortcuts handling
+if ('navigator' in window && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(registration => {
+    // Handle app shortcuts
+    if ('shortcuts' in window) {
+      // App shortcuts are defined in manifest.json
+    }
   });
 }
 
-// Add test notification to drawer (for debugging - remove in production)
-// Uncomment the line below to add test notification option in drawer
-// document.querySelector('#drawer h3').insertAdjacentHTML('afterend', '<a href="#" onclick="testNotification(); toggleDrawer();">🧪 Test Notification</a>');
+// Add theme color meta tag update based on content
+function updateThemeColor(color = '#222') {
+  let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (!themeColorMeta) {
+    themeColorMeta = document.createElement('meta');
+    themeColorMeta.name = 'theme-color';
+    document.head.appendChild(themeColorMeta);
+  }
+  themeColorMeta.content = color;
+}
 
-console.log('🔔 OneSignal Push Notification System Loaded Successfully!');
-console.log('📱 App ID:', '8305d6bc-7596-4ac0-807b-43d2ae7d9ef8');
-console.log('✅ Background notifications enabled');
-console.log('🎯 Auto-subscription enabled');
-console.log('🔄 Real-time match updates enabled');
+// Update theme color on page load
+updateThemeColor('#222');
+
+// Add focus management for accessibility
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Tab') {
+    document.body.classList.add('keyboard-navigation');
+  }
+});
+
+document.addEventListener('mousedown', function() {
+  document.body.classList.remove('keyboard-navigation');
+});
+
+// Add CSS for keyboard navigation
+const keyboardNavCSS = `
+  .keyboard-navigation button:focus,
+  .keyboard-navigation a:focus,
+  .keyboard-navigation input:focus {
+    outline: 2px solid #0af !important;
+    outline-offset: 2px !important;
+  }
+`;
+
+const style = document.createElement('style');
+style.textContent = keyboardNavCSS;
+document.head.appendChild(style);
 
 </script>
 
